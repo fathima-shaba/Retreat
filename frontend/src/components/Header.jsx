@@ -10,14 +10,6 @@ const Header = () => {
       </div>
       
       <div className="header-actions">
-        <button className="icon-btn">
-          <MessageSquare size={20} />
-        </button>
-        <button className="icon-btn">
-          <Bell size={20} />
-          <span className="notification-badge"></span>
-        </button>
-        
         <div className="user-profile" style={{ marginLeft: '1rem' }}>
           <div className="user-info" style={{ textAlign: 'right' }}>
             <span className="user-name">Admin User</span>
