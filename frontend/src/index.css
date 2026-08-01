@@ -188,6 +188,8 @@ input {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Sidebar */
@@ -306,6 +308,7 @@ input {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  max-width: 100%;
 }
 
 /* Header */
@@ -460,6 +463,8 @@ input {
 /* Recent Activity Section */
 .section-card {
   padding: 1.5rem;
+  max-width: 100vw;
+  overflow-x: auto;
 }
 
 .section-title {
@@ -597,18 +602,25 @@ input {
   .main-content {
     margin-left: 0;
     margin-bottom: 70px;
+    width: 100vw;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   .header {
     padding: 0 1rem;
+    width: 100%;
   }
   
   .header-search {
-    width: 180px;
+    width: 150px;
   }
 
   .page-content {
     padding: 1rem;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   .page-header {
@@ -619,5 +631,16 @@ input {
   
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .section-card {
+    padding: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  table {
+    min-width: 600px;
   }
 }
