@@ -27,6 +27,7 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Typography */
@@ -566,9 +567,8 @@ input {
     flex-direction: row;
     padding: 0;
     flex: 1;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
-    overflow-x: auto;
   }
 
   .nav-item {
