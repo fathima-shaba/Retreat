@@ -19,7 +19,7 @@ const Rooms = () => {
   });
 
   const fetchRooms = () => {
-    fetch('http://localhost:5000/api/rooms', {
+    fetch(import.meta.env.VITE_API_URL + '/rooms', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -51,7 +51,7 @@ const Rooms = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const capacity = parseInt(roomData.type.split(' ')[0]);
-    const url = editingId ? `http://localhost:5000/api/rooms/${editingId}` : 'http://localhost:5000/api/rooms';
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/rooms/${editingId}` : import.meta.env.VITE_API_URL + '/rooms';
     const method = editingId ? 'PUT' : 'POST';
     
     try {

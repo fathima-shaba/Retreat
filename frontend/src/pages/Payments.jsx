@@ -6,7 +6,7 @@ const Payments = () => {
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/payments', {
+    fetch(import.meta.env.VITE_API_URL + '/payments', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())

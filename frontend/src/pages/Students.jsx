@@ -32,7 +32,7 @@ const Students = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const resStudents = await fetch('http://localhost:5000/api/students', {
+      const resStudents = await fetch(import.meta.env.VITE_API_URL + '/students', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resStudents.ok) {
@@ -40,7 +40,7 @@ const Students = () => {
         setStudents(Array.isArray(dataStudents) ? dataStudents : []);
       }
 
-      const resRooms = await fetch('http://localhost:5000/api/rooms', {
+      const resRooms = await fetch(import.meta.env.VITE_API_URL + '/rooms', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resRooms.ok) {
@@ -87,7 +87,7 @@ const Students = () => {
   const handleDelete = async (id) => {
     if(!window.confirm("Are you sure you want to delete this student?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/students/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -99,7 +99,7 @@ const Students = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = editingId ? `http://localhost:5000/api/students/${editingId}` : 'http://localhost:5000/api/students';
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/students/${editingId}` : import.meta.env.VITE_API_URL + '/students';
     const method = editingId ? 'PUT' : 'POST';
     
     try {

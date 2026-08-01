@@ -18,7 +18,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/dashboard/stats', {
+        const response = await fetch(import.meta.env.VITE_API_URL + '/dashboard/stats', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -26,7 +26,7 @@ const Dashboard = () => {
           setStats(data);
         }
 
-        const resStudents = await fetch('http://localhost:5000/api/students', {
+        const resStudents = await fetch(import.meta.env.VITE_API_URL + '/students', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (resStudents.ok) {
