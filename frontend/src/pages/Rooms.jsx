@@ -211,7 +211,14 @@ const Rooms = () => {
                 <td style={{ padding: '1rem', fontWeight: '600' }}>{room.room_number}</td>
                 <td style={{ padding: '1rem' }}>Floor {room.floor}</td>
                 <td style={{ padding: '1rem' }}>{room.type}</td>
-                <td style={{ padding: '1rem' }}>{room.capacity} Beds</td>
+                <td style={{ padding: '1rem' }}>
+                  <div>{room.capacity} Beds</div>
+                  {room.capacity - (room.occupied_count || 0) > 0 ? (
+                    <div style={{ fontSize: '0.8rem', color: '#10b981' }}>{room.capacity - (room.occupied_count || 0)} space{room.capacity - (room.occupied_count || 0) > 1 ? 's' : ''} vacant</div>
+                  ) : (
+                    <div style={{ fontSize: '0.8rem', color: '#ef4444' }}>Full</div>
+                  )}
+                </td>
                 <td style={{ padding: '1rem' }}>
                   <span style={{ 
                     padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem',

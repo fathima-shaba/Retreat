@@ -1,7 +1,12 @@
 const db = require('../config/db');
 
 exports.getAllRooms = (req, res) => {
-    db.query("SELECT * FROM rooms", (err, results) => {
+    db.query(`
+        SELECT r.*, COUNT(m.id) as occupied_count 
+        FROM rooms r 
+        LEFT JOIN members m ON r.id = m.room_id 
+        GROUP BY r.id
+    `, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
