@@ -21,28 +21,32 @@ exports.getMemberById = (req, res) => {
 };
 
 exports.createMember = (req, res) => {
-    const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date } = req.body;
+    const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date, member_type, institution_details } = req.body;
     const finalRoomId = room_id ? room_id : null;
     const nextDue = next_due_date ? next_due_date : null;
+    const mType = member_type || 'Other';
+    const iDetails = institution_details || '';
 
     db.query(
-        "INSERT INTO members (name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [name, email, phone, finalRoomId, address, joined_date, aadhar_number, admission_fee || 0, rent_fee || 0, nextDue],
+        "INSERT INTO members (name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date, member_type, institution_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [name, email, phone, finalRoomId, address, joined_date, aadhar_number, admission_fee || 0, rent_fee || 0, nextDue, mType, iDetails],
         (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
-            res.status(201).json({ id: result.insertId, name, email, phone, room_id: finalRoomId });
+            res.status(201).json({ id: result.insertId, name, email, phone, room_id: finalRoomId, member_type: mType });
         }
     );
 };
 
 exports.updateMember = (req, res) => {
-    const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date } = req.body;
+    const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date, member_type, institution_details } = req.body;
     const finalRoomId = room_id ? room_id : null;
     const nextDue = next_due_date ? next_due_date : null;
+    const mType = member_type || 'Other';
+    const iDetails = institution_details || '';
 
     db.query(
-        "UPDATE members SET name=?, email=?, phone=?, room_id=?, address=?, joined_date=?, aadhar_number=?, admission_fee=?, rent_fee=?, next_due_date=? WHERE id=?",
-        [name, email, phone, finalRoomId, address, joined_date, aadhar_number, admission_fee || 0, rent_fee || 0, nextDue, req.params.id],
+        "UPDATE members SET name=?, email=?, phone=?, room_id=?, address=?, joined_date=?, aadhar_number=?, admission_fee=?, rent_fee=?, next_due_date=?, member_type=?, institution_details=? WHERE id=?",
+        [name, email, phone, finalRoomId, address, joined_date, aadhar_number, admission_fee || 0, rent_fee || 0, nextDue, mType, iDetails, req.params.id],
         (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ message: "Member updated successfully" });

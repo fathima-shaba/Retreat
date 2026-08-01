@@ -27,7 +27,9 @@ const Members = () => {
     joined_date: new Date().toISOString().split('T')[0],
     admission_fee: 0,
     rent_fee: 0,
-    next_due_date: ''
+    next_due_date: '',
+    member_type: 'Other',
+    institution_details: ''
   });
 
   const fetchData = async () => {
@@ -64,7 +66,8 @@ const Members = () => {
     setStudentData({ 
       name: '', email: '', phone: '', aadhar_number: '', room_id: '', address: '', 
       joined_date: new Date().toISOString().split('T')[0],
-      admission_fee: 0, rent_fee: 0, next_due_date: ''
+      admission_fee: 0, rent_fee: 0, next_due_date: '',
+      member_type: 'Other', institution_details: ''
     });
     setShowModal(true);
   };
@@ -81,7 +84,9 @@ const Members = () => {
       joined_date: member.joined_date ? member.joined_date.split('T')[0] : '',
       admission_fee: member.admission_fee || 0,
       rent_fee: member.rent_fee || 0,
-      next_due_date: member.next_due_date ? member.next_due_date.split('T')[0] : ''
+      next_due_date: member.next_due_date ? member.next_due_date.split('T')[0] : '',
+      member_type: member.member_type || 'Other',
+      institution_details: member.institution_details || ''
     });
     setShowModal(true);
   };
@@ -110,7 +115,9 @@ const Members = () => {
         room_id: studentData.room_id === '' ? null : parseInt(studentData.room_id),
         admission_fee: parseFloat(studentData.admission_fee),
         rent_fee: parseFloat(studentData.rent_fee),
-        next_due_date: studentData.next_due_date || null
+        next_due_date: studentData.next_due_date || null,
+        member_type: studentData.member_type,
+        institution_details: studentData.institution_details
       };
 
       const res = await fetch(url, {
@@ -186,7 +193,16 @@ const Members = () => {
                     <tr key={member.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '1rem' }}>
                         <div style={{ fontWeight: '500' }}>{member.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Aadhar: {member.aadhar_number || 'N/A'}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          <span style={{ 
+                            background: member.member_type === 'Student' ? 'rgba(59,130,246,0.2)' : (member.member_type === 'Employee' ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)'),
+                            color: member.member_type === 'Student' ? '#60a5fa' : (member.member_type === 'Employee' ? '#34d399' : '#94a3b8'),
+                            padding: '2px 6px', borderRadius: '4px', marginRight: '6px'
+                          }}>
+                            {member.member_type || 'Other'}
+                          </span>
+                          {member.institution_details ? member.institution_details : 'No details'}
+                        </div>
                       </td>
                       <td style={{ padding: '1rem' }}>
                         <div>{member.phone || 'N/A'}</div>
@@ -276,6 +292,26 @@ const Members = () => {
                 <div className="form-group">
                   <label>Phone Number</label>
                   <input type="text" className="input-field" value={studentData.phone} onChange={(e) => setStudentData({...studentData, phone: e.target.value})} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>Member Type</label>
+                  <select 
+                    className="input-field" 
+                    value={studentData.member_type} 
+                    onChange={(e) => setStudentData({...studentData, member_type: e.target.value})}
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  >
+                    <option value="Student">Student</option>
+                    <option value="Employee">Employee</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>{studentData.member_type === 'Student' ? 'College / School Name' : (studentData.member_type === 'Employee' ? 'Company / Workplace' : 'Additional Details')}</label>
+                  <input type="text" className="input-field" value={studentData.institution_details} onChange={(e) => setStudentData({...studentData, institution_details: e.target.value})} />
                 </div>
               </div>
 
