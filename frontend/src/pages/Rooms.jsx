@@ -187,7 +187,7 @@ const Rooms = () => {
             {displayedRooms.length > 0 ? displayedRooms.map(room => (
               <tr 
                 key={room.id} 
-                onClick={() => navigate(`/students?room=${room.room_number}`)}
+                onClick={() => navigate(`/members?room=${room.room_number}`)}
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s' }}
                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}

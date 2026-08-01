@@ -6,7 +6,7 @@ const Header = () => {
     <div className="header">
       <div className="header-search">
         <Search size={18} color="var(--text-secondary)" />
-        <input type="text" placeholder="Search students, rooms..." />
+        <input type="text" placeholder="Search members, rooms..." />
       </div>
       
       <div className="header-actions">

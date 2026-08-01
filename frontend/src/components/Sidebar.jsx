@@ -7,16 +7,18 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  Building
+  Building,
+  Wallet
 } from 'lucide-react';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Students', path: '/students', icon: <Users size={20} /> },
+    { name: 'Members', path: '/members', icon: <Users size={20} /> },
     { name: 'Rooms', path: '/rooms', icon: <BedDouble size={20} /> },
     { name: 'Payments', path: '/payments', icon: <CreditCard size={20} /> },
+    { name: 'Expenses', path: '/expenses', icon: <Wallet size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];
 

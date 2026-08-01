@@ -2,9 +2,10 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Students from './pages/Students';
+import Members from './pages/Members';
 import Rooms from './pages/Rooms';
 import Payments from './pages/Payments';
+import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
 
 const ProtectedRoute = ({ children }) => {
@@ -22,9 +23,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
+        <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>} />
         <Route path="/rooms" element={<ProtectedRoute><Rooms /></ProtectedRoute>} />
         <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+        <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         
         <Route path="*" element={<Navigate to="/login" replace />} />

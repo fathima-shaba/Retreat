@@ -31,7 +31,7 @@ const Payments = () => {
             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <th style={{ padding: '1rem' }}>Student Name</th>
+                  <th style={{ padding: '1rem' }}>Member Name</th>
                   <th style={{ padding: '1rem' }}>Amount</th>
                   <th style={{ padding: '1rem' }}>Date</th>
                   <th style={{ padding: '1rem' }}>Status</th>
@@ -40,7 +40,7 @@ const Payments = () => {
               <tbody>
                 {payments.length > 0 ? payments.map(payment => (
                   <tr key={payment.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '1rem' }}>{payment.student_name}</td>
+                    <td style={{ padding: '1rem' }}>{payment.member_name}</td>
                     <td style={{ padding: '1rem' }}>₹{payment.amount}</td>
                     <td style={{ padding: '1rem' }}>{new Date(payment.payment_date).toLocaleDateString()}</td>
                     <td style={{ padding: '1rem' }}>

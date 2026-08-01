@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 exports.getStats = (req, res) => {
     const queries = {
-        totalStudents: "SELECT COUNT(*) as count FROM students",
+        totalStudents: "SELECT COUNT(*) as count FROM members",
         totalRooms: "SELECT COUNT(*) as count FROM rooms",
         occupiedRooms: "SELECT COUNT(*) as count FROM rooms WHERE status='Occupied'",
         vacantRooms: "SELECT COUNT(*) as count FROM rooms WHERE status='Available'",

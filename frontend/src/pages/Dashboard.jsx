@@ -12,7 +12,7 @@ const Dashboard = () => {
     totalPayments: 0,
     pendingPayments: 0
   });
-  const [students, setStudents] = useState([]);
+  const [members, setStudents] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -26,7 +26,7 @@ const Dashboard = () => {
           setStats(data);
         }
 
-        const resStudents = await fetch(import.meta.env.VITE_API_URL + '/students', {
+        const resStudents = await fetch(import.meta.env.VITE_API_URL + '/members', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (resStudents.ok) {
@@ -57,7 +57,7 @@ const Dashboard = () => {
           <div className="dashboard-grid">
             <div className="glass-panel stat-card">
               <div className="stat-header">
-                <span>Total Students</span>
+                <span>Total Members</span>
                 <div className="stat-icon"><Users size={20} /></div>
               </div>
               <div className="stat-value">{stats.totalStudents || 0}</div>
@@ -103,7 +103,7 @@ const Dashboard = () => {
               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <th style={{ padding: '1rem' }}>Student Name</th>
+                    <th style={{ padding: '1rem' }}>Member Name</th>
                     <th style={{ padding: '1rem' }}>Room #</th>
                     <th style={{ padding: '1rem' }}>Monthly Rent</th>
                     <th style={{ padding: '1rem' }}>Due Date</th>
@@ -111,10 +111,10 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {students.filter(s => s.next_due_date).map(student => {
+                  {members.filter(s => s.next_due_date).map(member => {
                     const today = new Date();
                     today.setHours(0,0,0,0);
-                    const due = new Date(student.next_due_date);
+                    const due = new Date(member.next_due_date);
                     
                     const diffTime = due - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -122,10 +122,10 @@ const Dashboard = () => {
                     // Show if overdue (<0) or due within 5 days
                     if (diffDays <= 5) {
                       return (
-                        <tr key={student.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '1rem', fontWeight: '500' }}>{student.name}</td>
-                          <td style={{ padding: '1rem' }}>{student.room_number || 'N/A'}</td>
-                          <td style={{ padding: '1rem' }}>₹{student.rent_fee}</td>
+                        <tr key={member.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '1rem', fontWeight: '500' }}>{member.name}</td>
+                          <td style={{ padding: '1rem' }}>{member.room_number || 'N/A'}</td>
+                          <td style={{ padding: '1rem' }}>₹{member.rent_fee}</td>
                           <td style={{ padding: '1rem' }}>{due.toLocaleDateString()}</td>
                           <td style={{ padding: '1rem' }}>
                             {diffDays < 0 ? (

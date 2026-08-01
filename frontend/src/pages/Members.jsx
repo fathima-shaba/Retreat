@@ -4,8 +4,8 @@ import Header from '../components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, Trash2, Calendar } from 'lucide-react';
 
-const Students = () => {
-  const [students, setStudents] = useState([]);
+const Members = () => {
+  const [members, setStudents] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -32,7 +32,7 @@ const Students = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const resStudents = await fetch(import.meta.env.VITE_API_URL + '/students', {
+      const resStudents = await fetch(import.meta.env.VITE_API_URL + '/members', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resStudents.ok) {
@@ -67,27 +67,27 @@ const Students = () => {
     setShowModal(true);
   };
 
-  const openEditModal = (student) => {
-    setEditingId(student.id);
+  const openEditModal = (member) => {
+    setEditingId(member.id);
     setStudentData({ 
-      name: student.name, 
-      email: student.email, 
-      phone: student.phone || '', 
-      aadhar_number: student.aadhar_number || '',
-      room_id: student.room_id || '',
-      address: student.address || '',
-      joined_date: student.joined_date ? student.joined_date.split('T')[0] : '',
-      admission_fee: student.admission_fee || 0,
-      rent_fee: student.rent_fee || 0,
-      next_due_date: student.next_due_date ? student.next_due_date.split('T')[0] : ''
+      name: member.name, 
+      email: member.email, 
+      phone: member.phone || '', 
+      aadhar_number: member.aadhar_number || '',
+      room_id: member.room_id || '',
+      address: member.address || '',
+      joined_date: member.joined_date ? member.joined_date.split('T')[0] : '',
+      admission_fee: member.admission_fee || 0,
+      rent_fee: member.rent_fee || 0,
+      next_due_date: member.next_due_date ? member.next_due_date.split('T')[0] : ''
     });
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this student?")) return;
+    if(!window.confirm("Are you sure you want to delete this member?")) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/students/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/members/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -99,7 +99,7 @@ const Students = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = editingId ? `${import.meta.env.VITE_API_URL}/students/${editingId}` : import.meta.env.VITE_API_URL + '/students';
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/members/${editingId}` : import.meta.env.VITE_API_URL + '/members';
     const method = editingId ? 'PUT' : 'POST';
     
     try {
@@ -125,11 +125,11 @@ const Students = () => {
         fetchData();
       } else {
         const errorData = await res.json();
-        alert("Failed to save student: " + (errorData.message || errorData.error));
+        alert("Failed to save member: " + (errorData.message || errorData.error));
       }
     } catch (err) {
       console.error(err);
-      alert("Error saving student");
+      alert("Error saving member");
     }
   };
 
@@ -141,17 +141,17 @@ const Students = () => {
         <div className="page-content">
           <div className="page-header">
             <div>
-              <h1 className="page-title">Students {roomFilter ? `- Room ${roomFilter}` : ''}</h1>
-              <p className="page-subtitle">Manage student records and room assignments</p>
+              <h1 className="page-title">Members {roomFilter ? `- Room ${roomFilter}` : ''}</h1>
+              <p className="page-subtitle">Manage member records and room assignments</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               {roomFilter && (
-                <button className="icon-btn" onClick={() => navigate('/students')} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '8px', color: 'var(--text-secondary)' }}>
+                <button className="icon-btn" onClick={() => navigate('/members')} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '8px', color: 'var(--text-secondary)' }}>
                   Clear Filter
                 </button>
               )}
               <button className="btn-primary" onClick={openAddModal}>
-                <Plus size={18} /> Add Student
+                <Plus size={18} /> Add Member
               </button>
             </div>
           </div>
@@ -169,53 +169,53 @@ const Students = () => {
                 </tr>
               </thead>
               <tbody>
-                {students.filter(s => roomFilter ? s.room_number === roomFilter : true).length > 0 ? students.filter(s => roomFilter ? s.room_number === roomFilter : true).map(student => {
+                {members.filter(s => roomFilter ? s.room_number === roomFilter : true).length > 0 ? members.filter(s => roomFilter ? s.room_number === roomFilter : true).map(member => {
                   let isOverdue = false;
-                  if (student.next_due_date) {
+                  if (member.next_due_date) {
                       const today = new Date();
-                      const dueDate = new Date(student.next_due_date);
+                      const dueDate = new Date(member.next_due_date);
                       if (dueDate < today) isOverdue = true;
                   }
 
                   return (
-                    <tr key={student.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <tr key={member.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: '500' }}>{student.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Aadhar: {student.aadhar_number || 'N/A'}</div>
+                        <div style={{ fontWeight: '500' }}>{member.name}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Aadhar: {member.aadhar_number || 'N/A'}</div>
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        <div>{student.phone || 'N/A'}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{student.email}</div>
+                        <div>{member.phone || 'N/A'}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.email}</div>
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        {student.room_number ? (
+                        {member.room_number ? (
                           <span style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--accent-primary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
-                            Room {student.room_number}
+                            Room {member.room_number}
                           </span>
                         ) : (
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Unassigned</span>
                         )}
                       </td>
                       <td style={{ padding: '1rem', fontWeight: '600' }}>
-                        ₹{student.rent_fee}
+                        ₹{member.rent_fee}
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        {student.next_due_date ? (
+                        {member.next_due_date ? (
                            <span style={{ 
                              display: 'flex', alignItems: 'center', gap: '0.3rem',
                              color: isOverdue ? '#ef4444' : 'var(--text-primary)'
                            }}>
                              {isOverdue && <Calendar size={14} />}
-                             {new Date(student.next_due_date).toLocaleDateString()}
+                             {new Date(member.next_due_date).toLocaleDateString()}
                            </span>
                         ) : 'N/A'}
                       </td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button onClick={() => openEditModal(student)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <button onClick={() => openEditModal(member)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)' }}>
                             <Edit2 size={16} />
                           </button>
-                          <button onClick={() => handleDelete(student.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                          <button onClick={() => handleDelete(member.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -223,7 +223,7 @@ const Students = () => {
                     </tr>
                   )
                 }) : (
-                  <tr><td colSpan="6" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No students found. Add one to get started!</td></tr>
+                  <tr><td colSpan="6" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No members found. Add one to get started!</td></tr>
                 )}
               </tbody>
             </table>
@@ -231,7 +231,7 @@ const Students = () => {
         </div>
       </div>
 
-      {/* Add / Edit Student Modal */}
+      {/* Add / Edit Member Modal */}
       {showModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -246,7 +246,7 @@ const Students = () => {
             >
               <X size={20} />
             </button>
-            <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>{editingId ? 'Edit Student' : 'Add New Student'}</h2>
+            <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>{editingId ? 'Edit Member' : 'Add New Member'}</h2>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -317,7 +317,7 @@ const Students = () => {
               </div>
 
               <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem' }}>
-                {editingId ? 'Update Student' : 'Save Student'}
+                {editingId ? 'Update Member' : 'Save Member'}
               </button>
             </form>
           </div>
@@ -327,4 +327,4 @@ const Students = () => {
   );
 };
 
-export default Students;
+export default Members;
