@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-exports.getAllStudents = (req, res) => {
+exports.getAllMembers = (req, res) => {
     const query = `
         SELECT s.*, r.room_number 
         FROM members s 
@@ -12,7 +12,7 @@ exports.getAllStudents = (req, res) => {
     });
 };
 
-exports.getStudentById = (req, res) => {
+exports.getMemberById = (req, res) => {
     db.query("SELECT * FROM members WHERE id = ?", [req.params.id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.length === 0) return res.status(404).json({ message: "Member not found" });
@@ -20,7 +20,7 @@ exports.getStudentById = (req, res) => {
     });
 };
 
-exports.createStudent = (req, res) => {
+exports.createMember = (req, res) => {
     const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date } = req.body;
     const finalRoomId = room_id ? room_id : null;
     const nextDue = next_due_date ? next_due_date : null;
@@ -35,7 +35,7 @@ exports.createStudent = (req, res) => {
     );
 };
 
-exports.updateStudent = (req, res) => {
+exports.updateMember = (req, res) => {
     const { name, email, phone, room_id, address, joined_date, aadhar_number, admission_fee, rent_fee, next_due_date } = req.body;
     const finalRoomId = room_id ? room_id : null;
     const nextDue = next_due_date ? next_due_date : null;
@@ -50,7 +50,7 @@ exports.updateStudent = (req, res) => {
     );
 };
 
-exports.deleteStudent = (req, res) => {
+exports.deleteMember = (req, res) => {
     db.query("DELETE FROM members WHERE id = ?", [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: "Member deleted successfully" });
