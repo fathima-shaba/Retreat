@@ -9,6 +9,15 @@ const db = mysql.createConnection({
     ssl: (process.env.DB_SSL && process.env.DB_SSL.trim() === 'true') ? { rejectUnauthorized: false } : undefined
 });
 
+console.log("DEBUG: Attempting to connect to DB with config:");
+console.log({
+    host: process.env.DB_HOST ? process.env.DB_HOST.trim() : 'localhost',
+    port: process.env.DB_PORT ? Number(process.env.DB_PORT.trim()) : 3306,
+    user: process.env.DB_USER ? process.env.DB_USER.trim() : 'root',
+    database: process.env.DB_NAME ? process.env.DB_NAME.trim() : 'hostel_management',
+    ssl: (process.env.DB_SSL && process.env.DB_SSL.trim() === 'true') ? 'enabled' : 'disabled'
+});
+
 db.connect((err) => {
     if (err) {
         console.log("Database connection failed");
