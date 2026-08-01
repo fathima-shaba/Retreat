@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, X, Edit2, Trash2, Calendar } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Calendar, UserPlus } from 'lucide-react';
 
 const Members = () => {
-  const [members, setStudents] = useState([]);
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const isAdmin = user.role === 'admin';
+  const [members, setMembers] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -37,7 +39,7 @@ const Members = () => {
       });
       if (resStudents.ok) {
         const dataStudents = await resStudents.json();
-        setStudents(Array.isArray(dataStudents) ? dataStudents : []);
+        setMembers(Array.isArray(dataStudents) ? dataStudents : []);
       }
 
       const resRooms = await fetch(import.meta.env.VITE_API_URL + '/rooms', {
@@ -150,9 +152,11 @@ const Members = () => {
                   Clear Filter
                 </button>
               )}
-              <button className="btn-primary" onClick={openAddModal}>
-                <Plus size={18} /> Add Member
-              </button>
+              {isAdmin && (
+                <button className="btn-primary" onClick={openAddModal}>
+                  <UserPlus size={18} /> Add Member
+                </button>
+              )}
             </div>
           </div>
           
@@ -165,7 +169,8 @@ const Members = () => {
                   <th style={{ padding: '1rem' }}>Room</th>
                   <th style={{ padding: '1rem' }}>Monthly Rent</th>
                   <th style={{ padding: '1rem' }}>Next Due</th>
-                  <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '1rem' }}>Joined Date</th>
+                  {isAdmin && <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -210,20 +215,23 @@ const Members = () => {
                            </span>
                         ) : 'N/A'}
                       </td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button onClick={() => openEditModal(member)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => handleDelete(member.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+                      <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{member.joined_date ? new Date(member.joined_date).toLocaleDateString() : '-'}</td>
+                      {isAdmin && (
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => openEditModal(member)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                              <Edit2 size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(member.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 }) : (
-                  <tr><td colSpan="6" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No members found. Add one to get started!</td></tr>
+                  <tr><td colSpan={isAdmin ? 7 : 6} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No members found. Add one to get started!</td></tr>
                 )}
               </tbody>
             </table>

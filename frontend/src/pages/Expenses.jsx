@@ -4,6 +4,8 @@ import Header from '../components/Header';
 import { Plus, X, Edit2, Trash2, Wallet, TrendingDown, Calendar, Receipt } from 'lucide-react';
 
 const Expenses = () => {
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const isAdmin = user.role === 'admin';
   const [expenses, setExpenses] = useState([]);
   const [stats, setStats] = useState({ daily: 0, monthly: 0, yearly: 0, allTime: 0 });
   const [showModal, setShowModal] = useState(false);
@@ -113,9 +115,11 @@ const Expenses = () => {
               <h1 className="page-title">Expense Tracker</h1>
               <p className="page-subtitle">Monitor hostel outflows, daily, monthly, and yearly</p>
             </div>
-            <button className="btn-primary" onClick={openAddModal}>
-              <Plus size={18} /> Log Expense
-            </button>
+            {isAdmin && (
+              <button className="btn-primary" onClick={openAddModal}>
+                <Plus size={18} /> Log Expense
+              </button>
+            )}
           </div>
 
           <div className="dashboard-grid" style={{ marginBottom: '2rem' }}>
@@ -158,7 +162,7 @@ const Expenses = () => {
                   <th style={{ padding: '1rem' }}>Category</th>
                   <th style={{ padding: '1rem' }}>Description</th>
                   <th style={{ padding: '1rem' }}>Amount</th>
-                  <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+                  {isAdmin && <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -173,14 +177,16 @@ const Expenses = () => {
                     </td>
                     <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{expense.description || '-'}</td>
                     <td style={{ padding: '1rem', fontWeight: 'bold', color: '#ef4444' }}>₹{expense.amount}</td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <button onClick={() => openEditModal(expense)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)', marginRight: '0.5rem' }}>
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(expense.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    {isAdmin && (
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <button onClick={() => openEditModal(expense)} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)', marginRight: '0.5rem' }}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(expense.id)} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 )) : (
                   <tr><td colSpan="5" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No expenses recorded yet.</td></tr>

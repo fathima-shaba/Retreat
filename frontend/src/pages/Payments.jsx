@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 const Payments = () => {
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const isAdmin = user.role === 'admin';
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
@@ -25,7 +28,11 @@ const Payments = () => {
               <h1 className="page-title">Payments</h1>
               <p className="page-subtitle">Track payment history</p>
             </div>
-            <button className="btn-primary">Record Payment</button>
+            {isAdmin && (
+              <button className="btn-primary">
+                <Plus size={18} /> Record Payment
+              </button>
+            )}
           </div>
           <div className="glass-panel section-card" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
@@ -35,6 +42,7 @@ const Payments = () => {
                   <th style={{ padding: '1rem' }}>Amount</th>
                   <th style={{ padding: '1rem' }}>Date</th>
                   <th style={{ padding: '1rem' }}>Status</th>
+                  {isAdmin && <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -50,9 +58,19 @@ const Payments = () => {
                         color: payment.status === 'Paid' ? '#10b981' : '#f59e0b'
                       }}>{payment.status}</span>
                     </td>
+                    {isAdmin && (
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <button className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)', marginRight: '0.5rem' }}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 )) : (
-                  <tr><td colSpan="4" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No payments found.</td></tr>
+                  <tr><td colSpan={isAdmin ? "5" : "4"} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No payments found.</td></tr>
                 )}
               </tbody>
             </table>

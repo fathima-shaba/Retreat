@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Edit2, LayoutDashboard, List, Layers } from 'lucide-react';
+import { Plus, X, Edit2, LayoutDashboard, List, Layers, Trash2 } from 'lucide-react';
 
 const Rooms = () => {
   const [rooms, setRooms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const isAdmin = user.role === 'admin';
   const navigate = useNavigate();
   
   const [roomData, setRoomData] = useState({
@@ -46,6 +48,20 @@ const Rooms = () => {
       status: room.status
     });
     setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+    
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) fetchRooms();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -180,7 +196,7 @@ const Rooms = () => {
               <th style={{ padding: '1rem' }}>Type</th>
               <th style={{ padding: '1rem' }}>Capacity</th>
               <th style={{ padding: '1rem' }}>Status</th>
-              <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+              {isAdmin && <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -203,14 +219,21 @@ const Rooms = () => {
                     color: room.status === 'Available' ? '#10b981' : (room.status === 'Occupied' ? 'var(--accent-primary)' : '#ef4444')
                   }}>{room.status}</span>
                 </td>
-                <td style={{ padding: '1rem', textAlign: 'right' }}>
-                  <button onClick={(e) => { e.stopPropagation(); openEditModal(room); }} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)', marginLeft: 'auto' }}>
-                    <Edit2 size={16} />
-                  </button>
-                </td>
+                {isAdmin && (
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      <button onClick={(e) => { e.stopPropagation(); openEditModal(room); }} className="icon-btn" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(room.id); }} className="icon-btn" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             )) : (
-              <tr><td colSpan="6" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No rooms found for this view.</td></tr>
+              <tr><td colSpan={isAdmin ? "6" : "5"} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No rooms found for this view.</td></tr>
             )}
           </tbody>
         </table>
@@ -229,9 +252,11 @@ const Rooms = () => {
               <h1 className="page-title">Rooms Management</h1>
               <p className="page-subtitle">Track, manage, and analyze your hostel layout</p>
             </div>
-            <button className="btn-primary" onClick={openAddModal}>
-              <Plus size={18} /> Add Room
-            </button>
+            {isAdmin && (
+              <button className="btn-primary" onClick={openAddModal}>
+                <Plus size={18} /> Add Room
+              </button>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', overflowX: 'auto' }}>
