@@ -140,7 +140,7 @@ const Expenses = () => {
             <div className="glass-panel stat-card">
               <div className="stat-header">
                 <span>This Year</span>
-                <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-primary)' }}><Wallet size={20} /></div>
+                <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-primary)' }}><Wallet size={20} /></div>
               </div>
               <div className="stat-value">₹{stats.yearly || 0}</div>
             </div>

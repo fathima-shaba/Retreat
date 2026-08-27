@@ -100,7 +100,7 @@ const Rooms = () => {
   };
 
   const tabStyle = (isActive) => ({
-    background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+    background: isActive ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
     color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
     padding: '0.5rem 1rem',
     borderRadius: '8px',
