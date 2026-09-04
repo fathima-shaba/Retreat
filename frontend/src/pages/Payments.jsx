@@ -34,8 +34,8 @@ const Payments = () => {
               </button>
             )}
           </div>
-          <div className="glass-panel section-card" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <div className="glass-panel section-card table-responsive-container">
+            <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <th style={{ padding: '1rem' }}>Member Name</th>

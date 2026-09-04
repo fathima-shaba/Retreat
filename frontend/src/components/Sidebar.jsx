@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -14,11 +14,27 @@ import {
   FileText,
   Settings, 
   LogOut,
-  Building
+  Building,
+  X
 } from 'lucide-react';
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsOpen(prev => !prev);
+    const handleClose = () => setIsOpen(false);
+
+    window.addEventListener('toggle-mobile-sidebar', handleToggle);
+    window.addEventListener('close-mobile-sidebar', handleClose);
+
+    return () => {
+      window.removeEventListener('toggle-mobile-sidebar', handleToggle);
+      window.removeEventListener('close-mobile-sidebar', handleClose);
+    };
+  }, []);
+
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Residents', path: '/members', icon: <Users size={20} /> },
@@ -29,7 +45,6 @@ const Sidebar = () => {
     { name: 'Complaints', path: '/complaints', icon: <BellRing size={20} /> },
     { name: 'Visitors', path: '/visitors', icon: <UserCheck size={20} /> },
     { name: 'Staff & Warden', path: '/staff', icon: <Briefcase size={20} /> },
-    { name: 'Announcements', path: '/announcements', icon: <Megaphone size={20} /> },
     { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];
@@ -37,39 +52,62 @@ const Sidebar = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setIsOpen(false);
     navigate('/login');
   };
 
-  return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <Building color="white" size={18} />
-        </div>
-        <span className="sidebar-title">Hostel <span style={{ color: 'var(--accent-primary)' }}>FT</span></span>
-      </div>
-      
-      <div className="sidebar-nav">
-        {navItems.map((item) => (
-          <NavLink 
-            key={item.name} 
-            to={item.path} 
-            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
-          >
-            {item.icon}
-            <span>{item.name}</span>
-          </NavLink>
-        ))}
-      </div>
+  const handleNavClick = () => {
+    setIsOpen(false);
+  };
 
-      <div className="sidebar-footer">
-        <div onClick={handleLogout} className="nav-item" style={{ color: '#ef4444', cursor: 'pointer' }}>
-          <LogOut size={20} />
-          <span>Log Out</span>
+  return (
+    <>
+      <div 
+        className={`sidebar-overlay ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen(false)} 
+      />
+      
+      <div className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div className="sidebar-logo">
+              <Building color="white" size={18} />
+            </div>
+            <span className="sidebar-title">Hostel <span style={{ color: 'var(--accent-primary)' }}>FT</span></span>
+          </div>
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="mobile-close-btn"
+            style={{ background: 'transparent', color: 'var(--text-secondary)', padding: '0.25rem', cursor: 'pointer', border: 'none' }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="sidebar-nav">
+          {navItems.map((item) => (
+            <NavLink 
+              key={item.name} 
+              to={item.path} 
+              onClick={handleNavClick}
+              className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            >
+              {item.icon}
+              <span>{item.name}</span>
+            </NavLink>
+          ))}
+        </div>
+
+        <div className="sidebar-footer">
+          <div onClick={handleLogout} className="nav-item" style={{ color: '#ef4444', cursor: 'pointer' }}>
+            <LogOut size={20} />
+            <span>Log Out</span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default Sidebar;
+

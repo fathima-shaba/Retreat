@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import CustomSelect from '../components/CustomSelect';
 import { Megaphone, Send } from 'lucide-react';
 
 const Announcements = () => {
@@ -61,11 +62,15 @@ const Announcements = () => {
                 </div>
                 <div className="form-group">
                   <label>Audience</label>
-                  <select className="input-field" style={{ appearance: 'none', background: 'rgba(0,0,0,0.2)' }}>
-                    <option value="all">All Residents</option>
-                    <option value="blockA">Block A Only</option>
-                    <option value="staff">Staff Only</option>
-                  </select>
+                  <CustomSelect
+                    options={[
+                      { value: 'all', label: 'All Residents' },
+                      { value: 'blockA', label: 'Block A Only' },
+                      { value: 'staff', label: 'Staff Only' }
+                    ]}
+                    value="all"
+                    onChange={() => {}}
+                  />
                 </div>
                 <button type="button" className="btn-primary" onClick={handlePublish} style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }}>
                   <Send size={18} /> Publish Announcement

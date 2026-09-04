@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import CustomSelect from '../components/CustomSelect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, Trash2, Calendar, UserPlus } from 'lucide-react';
 
@@ -167,8 +168,8 @@ const Members = () => {
             </div>
           </div>
           
-          <div className="glass-panel section-card" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <div className="glass-panel section-card table-responsive-container">
+            <table style={{ width: '100%', minWidth: '650px', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <th style={{ padding: '1rem' }}>Name</th>
@@ -298,16 +299,11 @@ const Members = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label>Member Type</label>
-                  <select 
-                    className="input-field" 
+                  <CustomSelect 
+                    options={['Student', 'Employee', 'Other']}
                     value={studentData.member_type} 
                     onChange={(e) => setStudentData({...studentData, member_type: e.target.value})}
-                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                  >
-                    <option value="Student">Student</option>
-                    <option value="Employee">Employee</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  />
                 </div>
                 <div className="form-group">
                   <label>{studentData.member_type === 'Student' ? 'College / School Name' : (studentData.member_type === 'Employee' ? 'Company / Workplace' : 'Additional Details')}</label>
@@ -329,19 +325,17 @@ const Members = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label>Assign Room</label>
-                  <select 
-                    className="input-field"
+                  <CustomSelect 
+                    options={[
+                      { value: '', label: '-- Unassigned --' },
+                      ...rooms.map(r => ({
+                        value: String(r.id),
+                        label: `${r.room_number} (${r.type}) - ${r.status}`
+                      }))
+                    ]}
                     value={studentData.room_id}
                     onChange={(e) => setStudentData({...studentData, room_id: e.target.value})}
-                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                  >
-                    <option value="">-- Unassigned --</option>
-                    {rooms.map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.room_number} ({r.type}) - {r.status}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="form-group">
                   <label>Next Due Date</label>

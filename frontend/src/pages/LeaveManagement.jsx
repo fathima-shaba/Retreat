@@ -63,9 +63,9 @@ const LeaveManagement = () => {
             </div>
           </div>
 
-          <div className="glass-panel section-card" style={{ marginTop: '2rem' }}>
+          <div className="glass-panel section-card table-responsive-container" style={{ marginTop: '2rem' }}>
             <h2 className="section-title">Recent Requests</h2>
-            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <th style={{ padding: '1rem' }}>Resident</th>

@@ -80,31 +80,30 @@ const Dashboard = () => {
 
   // Mock Data arrays
   const roomStatus = [
-    { block: 'Block A', percent: 92, occupied: 110, total: 120 },
-    { block: 'Block B', percent: 88, occupied: 105, total: 120 },
-    { block: 'Block C', percent: 95, occupied: 114, total: 120 },
-    { block: 'Block D', percent: 89, occupied: 63, total: 70 }
+    { block: 'Floor A (A1-A9)', percent: 89, occupied: 8, total: 9 },
+    { block: 'Floor B (B1-B9)', percent: 78, occupied: 7, total: 9 },
+    { block: 'Floor C (C1-C8)', percent: 63, occupied: 5, total: 8 }
   ];
 
   const recentCheckins = [
-    { name: 'Akhil N', room: 'Room A-101', time: '10 May, 10:30 AM', initials: 'AN' },
-    { name: 'Fahad K', room: 'Room B-203', time: '09 May, 09:45 AM', initials: 'FK' },
-    { name: 'Rafid M', room: 'Room C-305', time: '09 May, 06:15 PM', initials: 'RM' },
-    { name: 'Nihal V', room: 'Room D-104', time: '08 May, 04:20 PM', initials: 'NV' }
+    { name: 'Akhil N', room: 'Room A1', time: '10 May, 10:30 AM', initials: 'AN' },
+    { name: 'Fahad K', room: 'Room B2', time: '09 May, 09:45 AM', initials: 'FK' },
+    { name: 'Rafid M', room: 'Room C3', time: '09 May, 06:15 PM', initials: 'RM' },
+    { name: 'Nihal V', room: 'Room A4', time: '08 May, 04:20 PM', initials: 'NV' }
   ];
 
   const leaveRequests = [
-    { name: 'Sreejith P', room: 'Room B-210', date: '12 May - 15 May', status: 'Pending', initials: 'SP' },
-    { name: 'Arjun R', room: 'Room A-203', date: '11 May - 13 May', status: 'Pending', initials: 'AR' },
-    { name: 'Jaseem K', room: 'Room C-107', date: '10 May - 12 May', status: 'Approved', initials: 'JK' },
-    { name: 'Alan K', room: 'Room D-205', date: '09 May - 10 May', status: 'Rejected', initials: 'AK' }
+    { name: 'Sreejith P', room: 'Room B2', date: '12 May - 15 May', status: 'Pending', initials: 'SP' },
+    { name: 'Arjun R', room: 'Room A3', date: '11 May - 13 May', status: 'Pending', initials: 'AR' },
+    { name: 'Jaseem K', room: 'Room C1', date: '10 May - 12 May', status: 'Approved', initials: 'JK' },
+    { name: 'Alan K', room: 'Room B5', date: '09 May - 10 May', status: 'Rejected', initials: 'AK' }
   ];
 
   const recentComplaints = [
-    { issue: 'Wi-Fi not working', room: 'Room A-101', status: 'Open' },
-    { issue: 'Water supply issue', room: 'Room B-203', status: 'In Progress' },
-    { issue: 'Light not working', room: 'Room C-305', status: 'Resolved' },
-    { issue: 'Fan problem', room: 'Room D-104', status: 'Open' }
+    { issue: 'Wi-Fi not working', room: 'Room A1', status: 'Open' },
+    { issue: 'Water supply issue', room: 'Room B2', status: 'In Progress' },
+    { issue: 'Light not working', room: 'Room C3', status: 'Resolved' },
+    { issue: 'Fan problem', room: 'Room A4', status: 'Open' }
   ];
 
   const getBadgeClass = (status) => {
@@ -125,7 +124,7 @@ const Dashboard = () => {
       <div className="main-content">
         <Header />
         
-        <div className="page-content" style={{ paddingBottom: '6rem' }}>
+        <div className="page-content">
           <div className="page-header">
             <div>
               <h1 className="page-title">Dashboard</h1>
@@ -134,7 +133,7 @@ const Dashboard = () => {
           </div>
           
           {/* Top Stat Cards */}
-          <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="stat-grid-4">
             <div className="glass-panel stat-card">
               <div className="stat-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -203,7 +202,7 @@ const Dashboard = () => {
                 <h2 style={{ fontSize: '1rem', fontWeight: '600' }}>Occupancy Overview</h2>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>This Month ▾</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div className="occupancy-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                 <DonutChart occupied={occupiedBeds} available={availableBeds} maintenance={maintenanceBeds} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
@@ -319,25 +318,6 @@ const Dashboard = () => {
           
         </div>
       </div>
-
-      {/* Floating Announcement */}
-      {showToast && (
-        <div className="announcement-toast">
-          <div style={{ background: 'rgba(16, 185, 129, 0.2)', padding: '0.5rem', borderRadius: '8px', color: '#10b981' }}>
-            <Megaphone size={20} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#10b981', marginBottom: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
-              Announcement
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '400' }}>2h ago</span>
-            </div>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-              Hostel annual maintenance on 20 May 2025. Please cooperate.
-            </p>
-          </div>
-          <button onClick={() => setShowToast(false)} style={{ background: 'transparent', color: 'var(--text-secondary)', padding: '0.25rem' }}>×</button>
-        </div>
-      )}
     </div>
   );
 };

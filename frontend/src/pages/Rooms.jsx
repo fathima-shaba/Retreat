@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import CustomSelect from '../components/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, LayoutDashboard, List, Layers, Trash2 } from 'lucide-react';
 
@@ -187,8 +188,8 @@ const Rooms = () => {
     const displayedRooms = filterFloor ? rooms.filter(r => r.floor === filterFloor) : rooms;
     
     return (
-      <div className="glass-panel section-card animate-fade-in" style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+      <div className="glass-panel section-card animate-fade-in table-responsive-container">
+        <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
               <th style={{ padding: '1rem' }}>Room #</th>
@@ -325,46 +326,34 @@ const Rooms = () => {
 
               <div className="form-group">
                 <label>Floor</label>
-                <select 
-                  className="input-field"
+                <CustomSelect
+                  options={[
+                    { value: 'A', label: 'Floor A' },
+                    { value: 'B', label: 'Floor B' },
+                    { value: 'C', label: 'Floor C' }
+                  ]}
                   value={roomData.floor}
-                  onChange={(e) => setRoomData({...roomData, floor: e.target.value})}
-                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                >
-                  <option value="A">Floor A</option>
-                  <option value="B">Floor B</option>
-                  <option value="C">Floor C</option>
-                </select>
+                  onChange={(e) => setRoomData({ ...roomData, floor: e.target.value })}
+                />
               </div>
 
               <div className="form-group">
                 <label>Room Type</label>
-                <select 
-                  className="input-field"
+                <CustomSelect
+                  options={['2 Share', '3 Share', '4 Share', '5 Share']}
                   value={roomData.type}
-                  onChange={(e) => setRoomData({...roomData, type: e.target.value})}
-                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                >
-                  <option value="2 Share">2 Share</option>
-                  <option value="3 Share">3 Share</option>
-                  <option value="4 Share">4 Share</option>
-                  <option value="5 Share">5 Share</option>
-                </select>
+                  onChange={(e) => setRoomData({ ...roomData, type: e.target.value })}
+                />
               </div>
 
               {editingId && (
                 <div className="form-group">
                   <label>Status</label>
-                  <select 
-                    className="input-field"
+                  <CustomSelect
+                    options={['Available', 'Occupied', 'Maintenance']}
                     value={roomData.status}
-                    onChange={(e) => setRoomData({...roomData, status: e.target.value})}
-                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                  >
-                    <option value="Available">Available</option>
-                    <option value="Occupied">Occupied</option>
-                    <option value="Maintenance">Maintenance</option>
-                  </select>
+                    onChange={(e) => setRoomData({ ...roomData, status: e.target.value })}
+                  />
                 </div>
               )}
 

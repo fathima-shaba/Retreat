@@ -14,7 +14,7 @@ const Reports = () => {
       <div className="main-content">
         <Header />
         
-        <div className="page-content" style={{ paddingBottom: '6rem' }}>
+        <div className="page-content">
           <div className="page-header">
             <div>
               <h1 className="page-title">Reports & Analytics</h1>

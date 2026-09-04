@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import CustomSelect from '../components/CustomSelect';
 import { Plus, X, Edit2, Trash2, Wallet, TrendingDown, Calendar, Receipt } from 'lucide-react';
 
 const Expenses = () => {
@@ -122,7 +123,7 @@ const Expenses = () => {
             )}
           </div>
 
-          <div className="dashboard-grid" style={{ marginBottom: '2rem' }}>
+          <div className="stat-grid-4">
             <div className="glass-panel stat-card">
               <div className="stat-header">
                 <span>Today's Expenses</span>
@@ -153,9 +154,9 @@ const Expenses = () => {
             </div>
           </div>
           
-          <div className="glass-panel section-card" style={{ overflowX: 'auto' }}>
+          <div className="glass-panel section-card table-responsive-container">
             <h2 className="section-title" style={{ padding: '0 0 1rem 0' }}>Expense Logs</h2>
-            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <th style={{ padding: '1rem' }}>Date</th>
@@ -216,14 +217,11 @@ const Expenses = () => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div className="form-group">
                 <label>Category</label>
-                <select 
-                  className="input-field" 
+                <CustomSelect 
+                  options={categories}
                   value={expenseData.category}
                   onChange={(e) => setExpenseData({...expenseData, category: e.target.value})}
-                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                >
-                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                </select>
+                />
               </div>
 
               <div className="form-group">
