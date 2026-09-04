@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Users, BedDouble, Wallet, Megaphone, AlertCircle } from 'lucide-react';
@@ -44,6 +45,7 @@ const DonutChart = ({ occupied, available, maintenance }) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalRooms: 0,
@@ -292,23 +294,28 @@ const Dashboard = () => {
 
             <div className="glass-panel section-card">
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                <h2 style={{ fontSize: '0.875rem', fontWeight: '600' }}>Recent Complaints</h2>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>View all</span>
+                <h2 style={{ fontSize: '0.875rem', fontWeight: '600' }}>Recent Expenses</h2>
+                <span onClick={() => navigate('/expenses')} style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', cursor: 'pointer' }}>View all &rarr;</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {recentComplaints.map((item, i) => (
+                {[
+                  { category: 'Utilities', item: 'Electricity & Water Bill', amount: '₹14,500', date: 'Yesterday' },
+                  { category: 'Maintenance', item: 'Plumbing & Pipe Repair', amount: '₹3,200', date: '10 May' },
+                  { category: 'Groceries', item: 'Mess Food & Provisions', amount: '₹22,800', date: '08 May' },
+                  { category: 'Supplies', item: 'Cleaning & Sanitation Supplies', amount: '₹4,100', date: '05 May' }
+                ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         <AlertCircle size={14} color="var(--text-secondary)" />
+                      <div style={{ width: '2rem', height: '2rem', borderRadius: '8px', background: 'rgba(16,185,129,0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         <Wallet size={14} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '500' }}>{item.issue}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.room}</div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: '500' }}>{item.item}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.category} • {item.date}</div>
                       </div>
                     </div>
                     <div>
-                      <span className={`badge ${getBadgeClass(item.status)}`}>{item.status}</span>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', color: '#ef4444' }}>{item.amount}</span>
                     </div>
                   </div>
                 ))}

@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import MobileBottomNav from './MobileBottomNav';
 import { 
   LayoutDashboard, 
   Users, 
   BedDouble, 
   Clock,
   CreditCard,
+  Receipt,
   CalendarDays,
-  BellRing,
-  UserCheck,
   Briefcase,
-  Megaphone,
   FileText,
   Settings, 
   LogOut,
@@ -41,9 +40,8 @@ const Sidebar = () => {
     { name: 'Rooms & Beds', path: '/rooms', icon: <BedDouble size={20} /> },
     { name: 'Attendance', path: '/attendance', icon: <Clock size={20} /> },
     { name: 'Fees & Payments', path: '/payments', icon: <CreditCard size={20} /> },
+    { name: 'Expense Tracker', path: '/expenses', icon: <Receipt size={20} /> },
     { name: 'Leave Management', path: '/leave', icon: <CalendarDays size={20} /> },
-    { name: 'Complaints', path: '/complaints', icon: <BellRing size={20} /> },
-    { name: 'Visitors', path: '/visitors', icon: <UserCheck size={20} /> },
     { name: 'Staff & Warden', path: '/staff', icon: <Briefcase size={20} /> },
     { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
@@ -105,9 +103,13 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
+
+      {/* Render Mobile Bottom Navigation Bar on Mobile Viewports */}
+      <MobileBottomNav />
     </>
   );
 };
 
 export default Sidebar;
+
 
