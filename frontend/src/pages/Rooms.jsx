@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Edit2, Trash2, Home, BedDouble, AlertCircle, IndianRupee } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Home, BedDouble, AlertCircle, IndianRupee, Layers, Tag, LayoutDashboard, List } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
 const Rooms = () => {

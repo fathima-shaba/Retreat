@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
-import { Plus, X, Edit2, Trash2, Calendar, Filter, DollarSign, PieChart, TrendingUp, Tag, FileText, CheckCircle2, ChevronRight, RefreshCw, FolderPlus } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Calendar, Filter, DollarSign, PieChart, TrendingUp, Tag, FileText, CheckCircle2, ChevronRight, RefreshCw, FolderPlus, Settings, Download, AlertCircle, Wallet } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
 const Expenses = () => {
