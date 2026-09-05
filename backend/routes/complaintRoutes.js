@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const complaintController = require('../controllers/complaintController');
-const { verifyToken } = require('../middleware/auth');
+const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/', verifyToken, complaintController.getAllComplaints);
-router.post('/', verifyToken, complaintController.createComplaint);
-router.put('/:id/status', verifyToken, complaintController.updateComplaintStatus);
+router.get('/', authMiddleware, complaintController.getAllComplaints);
+router.post('/', authMiddleware, complaintController.createComplaint);
+router.put('/:id/status', authMiddleware, complaintController.updateComplaintStatus);
 
 module.exports = router;

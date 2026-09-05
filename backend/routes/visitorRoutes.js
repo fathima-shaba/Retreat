@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const visitorController = require('../controllers/visitorController');
-const { verifyToken } = require('../middleware/auth');
+const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/', verifyToken, visitorController.getAllVisitors);
-router.post('/', verifyToken, visitorController.registerVisitor);
-router.put('/:id/checkout', verifyToken, visitorController.checkoutVisitor);
+router.get('/', authMiddleware, visitorController.getAllVisitors);
+router.post('/', authMiddleware, visitorController.registerVisitor);
+router.put('/:id/checkout', authMiddleware, visitorController.checkoutVisitor);
 
 module.exports = router;

@@ -20,4 +20,6 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+authMiddleware.verifyToken = authMiddleware;
 module.exports = authMiddleware;
+
