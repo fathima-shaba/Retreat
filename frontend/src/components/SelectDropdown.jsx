@@ -127,7 +127,7 @@ const SelectDropdown = ({
         </label>
       )}
 
-      {/* Dropdown Trigger Button - Standardized to match text input dimensions */}
+      {/* Trigger Button */}
       <button
         type="button"
         id={id}
@@ -137,7 +137,7 @@ const SelectDropdown = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         style={{ minHeight: '44px', width: '100%', boxSizing: 'border-box' }}
-        className={`w-full box-border flex items-center justify-between px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
+        className={`w-full box-border flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-gray-400'
             : isOpen
@@ -169,7 +169,7 @@ const SelectDropdown = ({
         />
       </button>
 
-      {/* Floating Options Menu Overlay - Absolute positioning & high z-index */}
+      {/* Floating Options Menu Overlay - Solid opaque background & high z-index */}
       {isOpen && (
         <div
           role="listbox"
@@ -180,12 +180,15 @@ const SelectDropdown = ({
             right: 0,
             width: '100%',
             zIndex: 99999,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            backgroundColor: 'var(--dropdown-bg, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
           }}
-          className="absolute left-0 right-0 top-full mt-1 w-full z-[99999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg overflow-y-auto max-h-60 py-1 text-gray-900 dark:text-gray-100"
+          className="absolute left-0 right-0 top-full mt-1 w-full z-[99999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-lg overflow-y-auto max-h-60 py-1 text-gray-900 dark:text-gray-100"
         >
           {normalizedOptions.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-center text-gray-500 dark:text-gray-400">
+            <div className="px-3.5 py-2.5 text-xs text-center text-gray-500 dark:text-gray-400">
               No options available
             </div>
           ) : (
@@ -201,7 +204,7 @@ const SelectDropdown = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(opt.value)}
                   onMouseEnter={() => setFocusedIndex(index)}
-                  className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none transition-colors duration-150 ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer select-none transition-colors duration-150 ${
                     isSelected
                       ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold'
                       : isFocused

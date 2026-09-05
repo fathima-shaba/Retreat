@@ -567,8 +567,8 @@ const Members = () => {
               </div>
 
               {/* Section 3: Occupation / Resident Type */}
-              <div className="form-grid-2">
-                <div className="form-group">
+              <div className="form-grid-2" style={{ position: 'relative', zIndex: 30 }}>
+                <div className="form-group" style={{ position: 'relative', zIndex: 30 }}>
                   <label>Resident Type</label>
                   <CustomSelect 
                     options={[
@@ -587,8 +587,8 @@ const Members = () => {
               </div>
 
               {/* Section 4: Room Assignment & Sharing Arrangement */}
-              <div className="form-grid-2">
-                <div className="form-group">
+              <div className="form-grid-2" style={{ position: 'relative', zIndex: 20 }}>
+                <div className="form-group" style={{ position: 'relative', zIndex: 20 }}>
                   <label>Assign Room</label>
                   <CustomSelect 
                     options={[
@@ -609,7 +609,7 @@ const Members = () => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative', zIndex: 20 }}>
                   <label>Sharing Arrangement</label>
                   {studentData.room_id && currentRoomRates.length > 0 ? (
                     <CustomSelect 
