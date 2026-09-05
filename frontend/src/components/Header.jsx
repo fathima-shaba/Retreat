@@ -1,10 +1,12 @@
-import React from 'react';
-import { Search, Menu, Sun, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import SearchInput from './SearchInput';
 
 const Header = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const { theme, toggleTheme } = useTheme();
+  const [globalSearch, setGlobalSearch] = useState('');
   
   const toggleMobileMenu = () => {
     window.dispatchEvent(new Event('toggle-mobile-sidebar'));
@@ -20,9 +22,12 @@ const Header = () => {
         <Menu size={22} />
       </button>
 
-      <div className="header-search">
-        <Search size={18} color="var(--text-secondary)" />
-        <input type="text" placeholder="Search..." />
+      <div className="header-search" style={{ maxWidth: '320px', width: '100%' }}>
+        <SearchInput 
+          value={globalSearch}
+          onChange={(e) => setGlobalSearch(e.target.value)}
+          placeholder="Global search..."
+        />
       </div>
       
       <div className="header-actions">

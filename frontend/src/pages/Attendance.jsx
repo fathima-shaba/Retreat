@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { UserCheck, UserX, Clock, Calendar, Save, Search, Filter, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import SearchInput from '../components/SearchInput';
+import { UserCheck, UserX, Clock, Calendar, Save, Filter, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
 const Attendance = () => {
@@ -232,14 +233,11 @@ const Attendance = () => {
           {/* Controls Bar: Search, Status Filter & Bulk Actions */}
           <div className="glass-panel section-card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="search-bar" style={{ maxWidth: '300px', flex: 1 }}>
-                <Search size={18} className="search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Search resident or room..."
+              <div style={{ maxWidth: '300px', flex: 1 }}>
+                <SearchInput 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search resident or room..."
                 />
               </div>
 

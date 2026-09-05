@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Plus, X, Edit2, Trash2, Search, Filter, Wallet, CheckCircle2, Clock, AlertCircle, Calendar } from 'lucide-react';
+import SearchInput from '../components/SearchInput';
+import { Plus, X, Edit2, Trash2, Filter, Wallet, CheckCircle2, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
 const Payments = () => {
@@ -268,14 +269,11 @@ const Payments = () => {
           {/* Filters & Search Controls */}
           <div className="glass-panel section-card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="search-bar" style={{ maxWidth: '320px', flex: 1 }}>
-                <Search size={18} className="search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Search by resident name or receipt #..."
+              <div style={{ maxWidth: '320px', flex: 1 }}>
+                <SearchInput 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by resident name or receipt #..."
                 />
               </div>
 
