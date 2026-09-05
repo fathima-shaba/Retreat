@@ -98,12 +98,20 @@ const Rooms = () => {
 
   // Synchronize bed capacity changes with type and rates validation
   const handleCapacityChange = (newCap) => {
-    const capInt = Math.max(1, parseInt(newCap) || 1);
-    const updatedRates = roomData.sharing_rates.filter(sr => sr.sharing_type <= capInt);
+    const capInt = Math.min(10, Math.max(1, parseInt(newCap) || 1));
+    const maxAllowed = Math.max(6, capInt);
+    const updatedRates = roomData.sharing_rates.filter(sr => sr.sharing_type <= maxAllowed);
     
-    // Ensure at least one rate matches capInt if empty
     if (updatedRates.length === 0) {
-      updatedRates.push({ sharing_type: capInt, monthly_rent: 5000 });
+      let defaultRent = 6000;
+      if (capInt === 1) defaultRent = 8000;
+      else if (capInt === 2) defaultRent = 6000;
+      else if (capInt === 3) defaultRent = 5000;
+      else if (capInt === 4) defaultRent = 4500;
+      else if (capInt === 5) defaultRent = 4000;
+      else if (capInt === 6) defaultRent = 3500;
+
+      updatedRates.push({ sharing_type: Math.min(capInt, 6), monthly_rent: defaultRent });
     }
 
     setRoomData({
@@ -115,23 +123,26 @@ const Rooms = () => {
   };
 
   const handleAddSharingRate = () => {
-    // Find first unused sharing capacity <= room capacity
+    const maxAllowed = Math.max(6, roomData.capacity || 1);
     const usedTypes = new Set(roomData.sharing_rates.map(sr => sr.sharing_type));
     let nextType = 1;
-    while (usedTypes.has(nextType) && nextType <= roomData.capacity) {
+    while (usedTypes.has(nextType) && nextType <= maxAllowed) {
       nextType++;
     }
 
-    if (nextType > roomData.capacity) {
-      setValidationError(`Cannot add more sharing rates. Maximum room capacity is ${roomData.capacity} beds.`);
+    if (nextType > maxAllowed) {
+      setValidationError(`Cannot add more sharing rates. All ${maxAllowed} sharing options configured.`);
       return;
     }
 
     setValidationError('');
     let defaultRent = 6000;
     if (nextType === 1) defaultRent = 8000;
+    else if (nextType === 2) defaultRent = 6000;
     else if (nextType === 3) defaultRent = 5000;
     else if (nextType === 4) defaultRent = 4500;
+    else if (nextType === 5) defaultRent = 4000;
+    else if (nextType === 6) defaultRent = 3500;
 
     setRoomData({
       ...roomData,
@@ -169,6 +180,7 @@ const Rooms = () => {
       return false;
     }
 
+    const maxAllowed = Math.max(6, roomData.capacity);
     const seenTypes = new Set();
     for (const sr of roomData.sharing_rates) {
       const typeNum = parseInt(sr.sharing_type);
@@ -179,8 +191,8 @@ const Rooms = () => {
         return false;
       }
 
-      if (typeNum > roomData.capacity) {
-        setValidationError(`Sharing capacity (${typeNum} Share) cannot exceed room capacity (${roomData.capacity} beds).`);
+      if (typeNum > maxAllowed) {
+        setValidationError(`Sharing capacity (${typeNum} Share) cannot exceed maximum allowed (${maxAllowed} shares).`);
         return false;
       }
 
@@ -595,7 +607,7 @@ const Rooms = () => {
                     {roomData.sharing_rates.map((sr, idx) => (
                       <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 36px', gap: '0.5rem', alignItems: 'center' }}>
                         <CustomSelect
-                          options={Array.from({ length: roomData.capacity }, (_, i) => i + 1).map(n => ({
+                          options={Array.from({ length: Math.max(6, roomData.capacity || 1) }, (_, i) => i + 1).map(n => ({
                             value: String(n),
                             label: `${n} Share`
                           }))}
