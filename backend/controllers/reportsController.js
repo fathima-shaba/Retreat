@@ -98,6 +98,12 @@ exports.exportCSV = async (req, res) => {
             (data || []).forEach(e => {
                 csvContent += `${escapeCSVCell(e.id)},${escapeCSVCell(e.category)},${escapeCSVCell(e.amount)},${escapeCSVCell(e.description)},${escapeCSVCell(e.expense_date)},${escapeCSVCell(e.payment_method)}\n`;
             });
+        } else if (type === 'rooms') {
+            const { data } = await supabase.from('rooms').select('*');
+            csvContent = "ID,Room Number,Floor,Capacity,Status\n";
+            (data || []).forEach(r => {
+                csvContent += `${escapeCSVCell(r.id)},${escapeCSVCell(r.room_number)},${escapeCSVCell(r.floor)},${escapeCSVCell(r.capacity)},${escapeCSVCell(r.status)}\n`;
+            });
         } else {
             return res.status(400).json({ error: "Invalid CSV report type" });
         }
