@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Download, FileText, PieChart, TrendingUp, DollarSign, RefreshCw } from 'lucide-react';
+import { FileText, PieChart, TrendingUp, DollarSign, RefreshCw } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -48,30 +48,6 @@ const Reports = () => {
   useEffect(() => {
     fetchReports();
   }, []);
-
-  const handleDownloadCSV = async (type) => {
-    setDownloading(`${type}_csv`);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/reports/export/${type}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to export CSV");
-      
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `report_${type}_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (err) {
-      alert("Error downloading CSV report.");
-    } finally {
-      setDownloading('');
-    }
-  };
 
   const handleDownloadPDF = async (type) => {
     setDownloading(`${type}_pdf`);
@@ -205,7 +181,7 @@ const Reports = () => {
           <div className="page-header">
             <div>
               <h1 className="page-title">Reports & Analytics</h1>
-              <p className="page-subtitle">Operational summaries, financial metrics, CSV & PDF exports</p>
+              <p className="page-subtitle">Operational summaries, financial metrics, and PDF exports</p>
             </div>
             <button className="btn-secondary" onClick={fetchReports} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh Data
@@ -288,7 +264,7 @@ const Reports = () => {
             <div className="glass-panel section-card">
               <h3 className="section-title" style={{ marginBottom: '0.5rem' }}>Operational & Financial Reports</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Export comprehensive system spreadsheets (CSV) or structured PDF documents for accounting and audits.
+                Export structured PDF documents for accounting, management review, and audits.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -298,17 +274,9 @@ const Reports = () => {
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Resident & Occupancy Roster</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Full resident roster, contact details, assigned rooms, and monthly rent fees.</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div>
                     <button 
                       className="btn-primary" 
-                      disabled={downloading === 'members_csv'}
-                      onClick={() => handleDownloadCSV('members')}
-                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-                    >
-                      <Download size={14} /> {downloading === 'members_csv' ? 'Exporting...' : 'Export CSV'}
-                    </button>
-                    <button 
-                      className="btn-secondary" 
                       disabled={downloading === 'members_pdf'}
                       onClick={() => handleDownloadPDF('members')}
                       style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
@@ -324,17 +292,9 @@ const Reports = () => {
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Fee & Payment Ledger</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Complete financial transaction log, receipt numbers, status, and payment modes.</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div>
                     <button 
                       className="btn-primary" 
-                      disabled={downloading === 'payments_csv'}
-                      onClick={() => handleDownloadCSV('payments')}
-                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-                    >
-                      <Download size={14} /> {downloading === 'payments_csv' ? 'Exporting...' : 'Export CSV'}
-                    </button>
-                    <button 
-                      className="btn-secondary" 
                       disabled={downloading === 'payments_pdf'}
                       onClick={() => handleDownloadPDF('payments')}
                       style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
@@ -350,17 +310,9 @@ const Reports = () => {
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Operational Expenses Log</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Detailed record of mess, maintenance, labor salaries, and utility bills.</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div>
                     <button 
                       className="btn-primary" 
-                      disabled={downloading === 'expenses_csv'}
-                      onClick={() => handleDownloadCSV('expenses')}
-                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-                    >
-                      <Download size={14} /> {downloading === 'expenses_csv' ? 'Exporting...' : 'Export CSV'}
-                    </button>
-                    <button 
-                      className="btn-secondary" 
                       disabled={downloading === 'expenses_pdf'}
                       onClick={() => handleDownloadPDF('expenses')}
                       style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
