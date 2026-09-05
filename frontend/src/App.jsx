@@ -9,7 +9,6 @@ import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
 import Attendance from './pages/Attendance';
-import LeaveManagement from './pages/LeaveManagement';
 import StaffWarden from './pages/StaffWarden';
 import Reports from './pages/Reports';
 
@@ -36,7 +35,6 @@ function App() {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-          <Route path="/leave" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
           <Route path="/staff" element={<ProtectedRoute><StaffWarden /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           

@@ -12,7 +12,6 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const reportRoutes = require("./routes/reportRoutes");
-const leaveRoutes = require("./routes/leaveRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
 
@@ -65,7 +64,6 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/reports", reportRoutes);
-app.use("/api/leave", leaveRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/visitors", visitorRoutes);
 
