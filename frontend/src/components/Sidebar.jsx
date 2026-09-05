@@ -12,7 +12,6 @@ import {
   Settings,
   LogOut,
   X,
-  MessageSquare,
   UserCheck,
   Megaphone
 } from 'lucide-react';
@@ -41,7 +40,6 @@ const Sidebar = () => {
     { name: 'Attendance', path: '/attendance', icon: <UserCheck size={20} /> },
     { name: 'Fees & Payments', path: '/payments', icon: <CreditCard size={20} /> },
     { name: 'Expense Tracker', path: '/expenses', icon: <Receipt size={20} /> },
-    { name: 'Complaints', path: '/complaints', icon: <MessageSquare size={20} /> },
     { name: 'Announcements', path: '/announcements', icon: <Megaphone size={20} /> },
     { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },

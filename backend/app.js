@@ -12,7 +12,6 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const reportRoutes = require("./routes/reportRoutes");
-const complaintRoutes = require("./routes/complaintRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
 
 const app = express();
@@ -64,7 +63,6 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/reports", reportRoutes);
-app.use("/api/complaints", complaintRoutes);
 app.use("/api/visitors", visitorRoutes);
 
 app.get("/api", (req, res) => {
