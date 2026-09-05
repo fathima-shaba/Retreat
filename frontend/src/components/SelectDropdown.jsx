@@ -18,7 +18,7 @@ const SelectDropdown = ({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef(null);
 
-  // Normalize options to unified object format: { value, label, badgeColor, subtext }
+  // Normalize options to unified format: { value, label, badgeColor, subtext }
   const normalizedOptions = options.map((opt) => {
     if (typeof opt === 'object' && opt !== null) {
       return {
@@ -36,7 +36,7 @@ const SelectDropdown = ({
     (opt) => String(opt.value) === String(value)
   );
 
-  // Close dropdown menu on outside click
+  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -47,7 +47,7 @@ const SelectDropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset focus index when opening dropdown
+  // Reset keyboard focus index on open
   useEffect(() => {
     if (isOpen) {
       const idx = normalizedOptions.findIndex((opt) => String(opt.value) === String(value));
@@ -97,7 +97,7 @@ const SelectDropdown = ({
     }
   };
 
-  // Helper function to resolve color indicator dots for common status/role values
+  // Helper function to resolve indicator dot colors
   const getStatusDot = (opt) => {
     if (!opt) return null;
     if (opt.badgeColor) return opt.badgeColor;
@@ -117,7 +117,7 @@ const SelectDropdown = ({
 
   return (
     <div 
-      className={`relative w-full ${className}`} 
+      className={`select-dropdown-container relative w-full ${className}`} 
       ref={dropdownRef} 
       style={{ width: '100%', position: 'relative', ...style }}
     >
@@ -127,7 +127,7 @@ const SelectDropdown = ({
         </label>
       )}
 
-      {/* Trigger Button */}
+      {/* Pro Dropdown Trigger Button */}
       <button
         type="button"
         id={id}
@@ -136,16 +136,25 @@ const SelectDropdown = ({
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        style={{ minHeight: '44px', width: '100%', boxSizing: 'border-box' }}
-        className={`w-full box-border flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
-          disabled
-            ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-gray-400'
-            : isOpen
-            ? 'bg-white dark:bg-gray-800 border-emerald-500 dark:border-emerald-500 ring-2 ring-emerald-500/20 text-gray-900 dark:text-gray-100 shadow-sm'
-            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-emerald-500/70 dark:hover:border-emerald-500/70 text-gray-900 dark:text-gray-100 shadow-xs'
-        }`}
+        style={{
+          minHeight: '44px',
+          width: '100%',
+          boxSizing: 'border-box',
+          background: 'var(--input-bg, rgba(0, 0, 0, 0.25))',
+          border: isOpen ? '1px solid var(--accent-primary, #10b981)' : '1px solid var(--border-color, rgba(255, 255, 255, 0.12))',
+          boxShadow: isOpen ? '0 0 0 3px rgba(16, 185, 129, 0.2)' : 'none',
+          color: 'var(--text-primary, #f8fafc)',
+          borderRadius: '10px',
+          padding: '0.6rem 0.9rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s ease',
+          opacity: disabled ? 0.6 : 1
+        }}
       >
-        <span className="truncate flex items-center gap-2">
+        <span className="truncate flex items-center gap-2 text-sm font-medium">
           {selectedOption ? (
             <>
               {getStatusDot(selectedOption) && (
@@ -154,41 +163,57 @@ const SelectDropdown = ({
                   style={{ backgroundColor: getStatusDot(selectedOption) }}
                 />
               )}
-              <span className="truncate text-gray-900 dark:text-gray-100">{selectedOption.label}</span>
+              <span className="truncate" style={{ color: 'var(--text-primary)' }}>{selectedOption.label}</span>
             </>
           ) : (
-            <span className="text-gray-400 dark:text-gray-500">{placeholder}</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{placeholder}</span>
           )}
         </span>
 
         <ChevronDown
           size={18}
-          className={`flex-shrink-0 ml-2 text-gray-400 dark:text-gray-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-emerald-500 dark:text-emerald-400' : ''
-          }`}
+          style={{
+            color: isOpen ? 'var(--accent-primary, #10b981)' : 'var(--text-secondary, #94a3b8)',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease, color 0.2s ease'
+          }}
+          className="flex-shrink-0 ml-2"
         />
       </button>
 
-      {/* Floating Options Menu Overlay - Solid opaque background & high z-index */}
+      {/* Pro Floating Overlay Menu */}
       {isOpen && (
         <div
           role="listbox"
           style={{
             position: 'absolute',
-            top: 'calc(100% + 4px)',
+            top: 'calc(100% + 6px)',
             left: 0,
             right: 0,
             width: '100%',
             zIndex: 99999,
             boxSizing: 'border-box',
-            backgroundColor: 'var(--dropdown-bg, #ffffff)',
-            border: '1px solid var(--border-color, #e2e8f0)',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+            background: 'var(--dropdown-bg, #16201d)',
+            border: '1px solid var(--border-color, rgba(255, 255, 255, 0.15))',
+            borderRadius: '12px',
+            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 10px 15px -5px rgba(0, 0, 0, 0.3)',
+            padding: '6px',
+            maxHeight: '230px',
+            overflowY: 'auto',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)'
           }}
-          className="absolute left-0 right-0 top-full mt-1 w-full z-[99999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-lg overflow-y-auto max-h-60 py-1 text-gray-900 dark:text-gray-100"
+          className="animate-in fade-in slide-in-from-top-2 duration-150 scrollbar-thin"
         >
           {normalizedOptions.length === 0 ? (
-            <div className="px-3.5 py-2.5 text-xs text-center text-gray-500 dark:text-gray-400">
+            <div 
+              style={{ 
+                padding: '0.75rem', 
+                fontSize: '0.8rem', 
+                textAlign: 'center', 
+                color: 'var(--text-secondary)' 
+              }}
+            >
               No options available
             </div>
           ) : (
@@ -204,25 +229,46 @@ const SelectDropdown = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(opt.value)}
                   onMouseEnter={() => setFocusedIndex(index)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer select-none transition-colors duration-150 ${
-                    isSelected
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold'
-                      : isFocused
-                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                      : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    fontWeight: isSelected ? '600' : '400',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    transition: 'all 0.15s ease',
+                    marginBottom: '2px',
+                    background: isSelected 
+                      ? 'rgba(16, 185, 129, 0.15)' 
+                      : isFocused 
+                      ? 'var(--dropdown-hover, rgba(16, 185, 129, 0.1))' 
+                      : 'transparent',
+                    color: isSelected 
+                      ? 'var(--accent-primary, #10b981)' 
+                      : 'var(--text-primary, #f8fafc)'
+                  }}
                 >
-                  <div className="flex items-center gap-2 truncate">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {dotColor && (
                       <span
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: dotColor }}
+                        style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: dotColor,
+                          flexShrink: 0
+                        }}
                       />
                     )}
-                    <div className="flex flex-col truncate">
-                      <span className="truncate">{opt.label}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {opt.label}
+                      </span>
                       {opt.subtext && (
-                        <span className="text-xs text-gray-400 dark:text-gray-500 font-normal">
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
                           {opt.subtext}
                         </span>
                       )}
@@ -230,7 +276,7 @@ const SelectDropdown = ({
                   </div>
 
                   {isSelected && (
-                    <Check size={16} className="flex-shrink-0 ml-2 text-emerald-500 dark:text-emerald-400" />
+                    <Check size={16} style={{ color: 'var(--accent-primary, #10b981)', flexShrink: 0, marginLeft: '0.5rem' }} />
                   )}
                 </div>
               );
