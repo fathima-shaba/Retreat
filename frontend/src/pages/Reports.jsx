@@ -47,6 +47,9 @@ const Reports = () => {
 
   useEffect(() => {
     fetchReports();
+    const handleFocus = () => fetchReports();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Helper function to safely escape CSV cells
