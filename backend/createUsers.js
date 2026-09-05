@@ -3,6 +3,13 @@ const supabase = require('./config/db');
 const bcrypt = require('bcrypt');
 
 async function createInitialUsers() {
+    if (process.env.NODE_ENV === 'production') {
+        if (!process.env.INITIAL_ADMIN_PASS || !process.env.INITIAL_VIEWER_PASS) {
+            console.error("❌ Refusing to run user seed script in production without explicit INITIAL_ADMIN_PASS and INITIAL_VIEWER_PASS environment variables.");
+            process.exit(1);
+        }
+    }
+
     console.log("Creating initial system user accounts in Supabase PostgreSQL...");
 
     // Retrieve initial credentials from environment variables or fallback safely

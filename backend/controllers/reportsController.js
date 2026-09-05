@@ -60,6 +60,18 @@ exports.getFinancialReport = async (req, res) => {
     }
 };
 
+const escapeCSVCell = (val) => {
+    if (val === null || val === undefined) return '""';
+    let str = String(val);
+    // Neutralize formula injection characters (=, +, -, @)
+    if (/^[=+\-@]/.test(str)) {
+        str = "'" + str;
+    }
+    // Double internal double-quotes
+    str = str.replace(/"/g, '""');
+    return `"${str}"`;
+};
+
 // Generate & Stream CSV Export
 exports.exportCSV = async (req, res) => {
     const { type } = req.params; // 'members' | 'payments' | 'expenses'
@@ -71,20 +83,20 @@ exports.exportCSV = async (req, res) => {
             const { data } = await supabase.from('members').select('*');
             csvContent = "ID,Name,Email,Phone,Room ID,Sharing Type,Rent Fee,Joined Date\n";
             (data || []).forEach(m => {
-                csvContent += `"${m.id}","${m.name}","${m.email}","${m.phone || ''}","${m.room_id || ''}","${m.sharing_type || ''}","${m.rent_fee || 0}","${m.joined_date || ''}"\n`;
+                csvContent += `${escapeCSVCell(m.id)},${escapeCSVCell(m.name)},${escapeCSVCell(m.email)},${escapeCSVCell(m.phone)},${escapeCSVCell(m.room_id)},${escapeCSVCell(m.sharing_type)},${escapeCSVCell(m.rent_fee)},${escapeCSVCell(m.joined_date)}\n`;
             });
         } else if (type === 'payments') {
             const { data } = await supabase.from('payments').select('*, members(name)');
             csvContent = "Receipt No,Resident Name,Amount,Status,Payment Mode,Payment Date\n";
             (data || []).forEach(p => {
                 const name = p.members ? p.members.name : 'Unknown';
-                csvContent += `"${p.receipt_no || ''}","${name}","${p.amount}","${p.status}","${p.payment_mode || 'Cash'}","${p.payment_date || ''}"\n`;
+                csvContent += `${escapeCSVCell(p.receipt_no)},${escapeCSVCell(name)},${escapeCSVCell(p.amount)},${escapeCSVCell(p.status)},${escapeCSVCell(p.payment_mode || 'Cash')},${escapeCSVCell(p.payment_date)}\n`;
             });
         } else if (type === 'expenses') {
             const { data } = await supabase.from('expenses').select('*');
             csvContent = "ID,Category,Amount,Description,Expense Date,Payment Method\n";
             (data || []).forEach(e => {
-                csvContent += `"${e.id}","${e.category}","${e.amount}","${e.description || ''}","${e.expense_date || ''}","${e.payment_method || ''}"\n`;
+                csvContent += `${escapeCSVCell(e.id)},${escapeCSVCell(e.category)},${escapeCSVCell(e.amount)},${escapeCSVCell(e.description)},${escapeCSVCell(e.expense_date)},${escapeCSVCell(e.payment_method)}\n`;
             });
         } else {
             return res.status(400).json({ error: "Invalid CSV report type" });
