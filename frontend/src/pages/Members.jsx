@@ -471,7 +471,7 @@ const Members = () => {
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <User size={16} color="var(--accent-primary)" /> Resident Personal Details
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label>Full Name *</label>
                     <input type="text" className="input-field" value={studentData.name} onChange={(e) => { setValidationError(''); setStudentData({...studentData, name: e.target.value}); }} required />
@@ -488,7 +488,7 @@ const Members = () => {
                     <label>Phone Number</label>
                     <input type="text" className="input-field" value={studentData.phone} onChange={(e) => setStudentData({...studentData, phone: e.target.value})} placeholder="e.g. 9876543210" />
                   </div>
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                     <label>Aadhar / Govt ID Number</label>
                     <input type="text" className="input-field" value={studentData.aadhar_number} onChange={(e) => setStudentData({...studentData, aadhar_number: e.target.value})} placeholder="e.g. 1234-5678-9012" />
                   </div>
@@ -500,7 +500,7 @@ const Members = () => {
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Shield size={16} color="var(--accent-primary)" /> Guardian / Parent Details
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label>Guardian Name</label>
                     <input type="text" className="input-field" placeholder="Parent or Guardian name" value={studentData.guardian_name} onChange={(e) => setStudentData({...studentData, guardian_name: e.target.value})} />
