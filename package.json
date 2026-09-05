@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "main": "api/index.js",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "server": "node backend/index.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.115.0",
     "bcrypt": "^6.0.0",
