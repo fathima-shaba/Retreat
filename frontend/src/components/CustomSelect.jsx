@@ -108,7 +108,7 @@ const CustomSelect = ({
 
       {/* Floating Popover Options Menu */}
       {isOpen && (
-        <div className="custom-select-menu animate-popover" role="listbox">
+        <div className="custom-select-menu animate-popover bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" role="listbox">
           {normalizedOptions.length === 0 ? (
             <div className="custom-select-no-options">No options available</div>
           ) : (
