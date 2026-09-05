@@ -442,11 +442,10 @@ const Payments = () => {
                   value={memberId}
                   onChange={(e) => setMemberId(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
                 >
                   <option value="" disabled>-- Select Resident --</option>
                   {members.map(m => (
-                    <option key={m.id} value={m.id} style={{ background: '#18181b', color: '#ffffff' }}>
+                    <option key={m.id} value={m.id}>
                       {m.name} ({m.email})
                     </option>
                   ))}
@@ -464,7 +463,6 @@ const Payments = () => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
                   />
                 </div>
 
@@ -474,12 +472,11 @@ const Payments = () => {
                     className="input-field"
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
                   >
-                    <option value="Cash" style={{ background: '#18181b' }}>Cash</option>
-                    <option value="UPI" style={{ background: '#18181b' }}>UPI / GPay / PhonePe</option>
-                    <option value="Bank Transfer" style={{ background: '#18181b' }}>Bank Transfer (NEFT/IMPS)</option>
-                    <option value="Card" style={{ background: '#18181b' }}>Credit/Debit Card</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI / GPay / PhonePe</option>
+                    <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                    <option value="Card">Credit/Debit Card</option>
                   </select>
                 </div>
               </div>
@@ -493,7 +490,6 @@ const Payments = () => {
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
                   />
                 </div>
 
@@ -504,11 +500,10 @@ const Payments = () => {
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
                   >
-                    <option value="Paid" style={{ background: '#18181b', color: '#10b981' }}>Paid</option>
-                    <option value="Pending" style={{ background: '#18181b', color: '#f59e0b' }}>Pending</option>
-                    <option value="Overdue" style={{ background: '#18181b', color: '#ef4444' }}>Overdue</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Overdue">Overdue</option>
                   </select>
                 </div>
               </div>
