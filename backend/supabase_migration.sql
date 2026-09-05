@@ -100,3 +100,18 @@ CREATE INDEX IF NOT EXISTS idx_payments_member_id ON payments(member_id);
 CREATE INDEX IF NOT EXISTS idx_room_sharing_rates_room_id ON room_sharing_rates(room_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_expense_date ON expenses(expense_date);
 CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+
+-- 11. Create attendance Table
+CREATE TABLE IF NOT EXISTS attendance (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    resident_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    status VARCHAR(50) DEFAULT 'Present' CHECK (status IN ('Present', 'Absent', 'Late')),
+    remarks TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT attendance_resident_date_unique UNIQUE (resident_id, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
+CREATE INDEX IF NOT EXISTS idx_attendance_resident_id ON attendance(resident_id);
+

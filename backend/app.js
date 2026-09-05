@@ -14,6 +14,7 @@ const roomRoutes = require("./routes/roomRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+const attendanceRoutes = require("./routes/attendanceRoutes");
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/expenses", expenseRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 app.get("/api", (req, res) => {
     res.json({ message: "Hostel Management Supabase API is running" });
