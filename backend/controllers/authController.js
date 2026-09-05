@@ -7,19 +7,29 @@ if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
 }
 
 const login = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password } = req.body || {};
     
+    if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
+        return res.status(400).json({ message: "Username and password are required" });
+    }
+
     try {
         const { data: users, error } = await supabase
             .from('users')
             .select('*')
-            .eq('username', username);
+            .eq('username', username.trim());
 
         if (error) return res.status(500).json({ message: "Server error", error: error.message });
         if (!users || users.length === 0) return res.status(401).json({ message: "Invalid credentials" });
 
         const user = users[0];
-        const isMatch = await bcrypt.compare(password, user.password);
+        let isMatch = false;
+        try {
+            isMatch = await bcrypt.compare(password, user.password || '');
+        } catch (bErr) {
+            console.error("Bcrypt comparison error:", bErr);
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
 
         if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 

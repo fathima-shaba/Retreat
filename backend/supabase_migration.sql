@@ -63,7 +63,10 @@ CREATE TABLE IF NOT EXISTS payments (
     member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     amount NUMERIC(10, 2) NOT NULL,
     status VARCHAR(50) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Paid', 'Overdue')),
+    payment_mode VARCHAR(50) DEFAULT 'Cash',
+    receipt_no VARCHAR(100),
     payment_date DATE,
+    remarks TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -94,14 +97,7 @@ INSERT INTO expense_categories (name) VALUES
     ('Internet'), ('Repairs'), ('Supplies'), ('Other')
 ON CONFLICT (name) DO NOTHING;
 
--- 10. Performance Indexes
-CREATE INDEX IF NOT EXISTS idx_members_room_id ON members(room_id);
-CREATE INDEX IF NOT EXISTS idx_payments_member_id ON payments(member_id);
-CREATE INDEX IF NOT EXISTS idx_room_sharing_rates_room_id ON room_sharing_rates(room_id);
-CREATE INDEX IF NOT EXISTS idx_expenses_expense_date ON expenses(expense_date);
-CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
-
--- 11. Create attendance Table
+-- 10. Create attendance Table
 CREATE TABLE IF NOT EXISTS attendance (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     resident_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
@@ -112,6 +108,50 @@ CREATE TABLE IF NOT EXISTS attendance (
     CONSTRAINT attendance_resident_date_unique UNIQUE (resident_id, date)
 );
 
+-- 11. Create leave_requests Table
+CREATE TABLE IF NOT EXISTS leave_requests (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    resident_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. Create complaints Table
+CREATE TABLE IF NOT EXISTS complaints (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    resident_id BIGINT REFERENCES members(id) ON DELETE SET NULL,
+    room_id BIGINT REFERENCES rooms(id) ON DELETE SET NULL,
+    category VARCHAR(100) DEFAULT 'Maintenance',
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Resolved')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. Create visitors Table
+CREATE TABLE IF NOT EXISTS visitors (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    visitor_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    resident_id BIGINT REFERENCES members(id) ON DELETE CASCADE,
+    purpose TEXT,
+    check_in TIMESTAMPTZ DEFAULT NOW(),
+    check_out TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 14. Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_members_room_id ON members(room_id);
+CREATE INDEX IF NOT EXISTS idx_payments_member_id ON payments(member_id);
+CREATE INDEX IF NOT EXISTS idx_room_sharing_rates_room_id ON room_sharing_rates(room_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_expense_date ON expenses(expense_date);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
 CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
 CREATE INDEX IF NOT EXISTS idx_attendance_resident_id ON attendance(resident_id);
+CREATE INDEX IF NOT EXISTS idx_leave_requests_resident_id ON leave_requests(resident_id);
+CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
+CREATE INDEX IF NOT EXISTS idx_visitors_check_in ON visitors(check_in);
 

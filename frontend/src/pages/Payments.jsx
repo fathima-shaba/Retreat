@@ -25,6 +25,9 @@ const Payments = () => {
   const [amount, setAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState('Paid');
+  const [paymentMode, setPaymentMode] = useState('Cash');
+  const [receiptNo, setReceiptNo] = useState('');
+  const [remarks, setRemarks] = useState('');
 
   // Fetch Payments from Backend
   const fetchPayments = async () => {
@@ -76,12 +79,18 @@ const Payments = () => {
       setAmount(payment.amount || '');
       setPaymentDate(payment.payment_date ? payment.payment_date.split('T')[0] : new Date().toISOString().split('T')[0]);
       setStatus(payment.status || 'Paid');
+      setPaymentMode(payment.payment_mode || 'Cash');
+      setReceiptNo(payment.receipt_no || '');
+      setRemarks(payment.remarks || '');
     } else {
       setEditingId(null);
       setMemberId(members.length > 0 ? members[0].id : '');
       setAmount('');
       setPaymentDate(new Date().toISOString().split('T')[0]);
       setStatus('Paid');
+      setPaymentMode('Cash');
+      setReceiptNo(`REC-${new Date().toISOString().slice(0,7).replace('-','')}-${Math.floor(1000 + Math.random() * 9000)}`);
+      setRemarks('');
     }
     setIsModalOpen(true);
   };
@@ -110,7 +119,10 @@ const Payments = () => {
       member_id: parseInt(memberId),
       amount: parseFloat(amount),
       payment_date: paymentDate,
-      status: status
+      status: status,
+      payment_mode: paymentMode,
+      receipt_no: receiptNo,
+      remarks: remarks
     };
 
     const token = localStorage.getItem('token');
@@ -170,7 +182,7 @@ const Payments = () => {
 
   // Filtered Payments List
   const filteredPayments = payments.filter(p => {
-    const matchesName = (p.member_name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesName = (p.member_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.receipt_no || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
     return matchesName && matchesStatus;
   });
@@ -199,7 +211,7 @@ const Payments = () => {
           <div className="page-header">
             <div>
               <h1 className="page-title">Fees & Payments</h1>
-              <p className="page-subtitle">Record transactions and manage resident fee statuses</p>
+              <p className="page-subtitle">Record transactions, manage receipts, and track resident fee ledgers</p>
             </div>
             {isAdmin && (
               <button className="btn-primary" onClick={() => openModal()}>
@@ -261,7 +273,7 @@ const Payments = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="Search by resident name..."
+                  placeholder="Search by resident name or receipt #..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -305,11 +317,13 @@ const Payments = () => {
                 Loading fee & payment records...
               </div>
             ) : (
-              <table style={{ width: '100%', minWidth: '650px', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', minWidth: '700px', textAlign: 'left', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    <th style={{ padding: '1rem' }}>Receipt #</th>
                     <th style={{ padding: '1rem' }}>Resident Name</th>
                     <th style={{ padding: '1rem' }}>Amount</th>
+                    <th style={{ padding: '1rem' }}>Mode</th>
                     <th style={{ padding: '1rem' }}>Payment Date</th>
                     <th style={{ padding: '1rem' }}>Status</th>
                     {isAdmin && <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>}
@@ -319,11 +333,19 @@ const Payments = () => {
                   {filteredPayments.length > 0 ? (
                     filteredPayments.map(payment => (
                       <tr key={payment.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-primary)' }}>
+                          {payment.receipt_no || `REC-${payment.id}`}
+                        </td>
                         <td style={{ padding: '1rem', fontWeight: '500' }}>
                           {payment.member_name || <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Unknown Resident</span>}
                         </td>
                         <td style={{ padding: '1rem', fontWeight: '600' }}>
                           ₹{Number(payment.amount).toLocaleString('en-IN')}
+                        </td>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                          <span style={{ background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                            {payment.payment_mode || 'Cash'}
+                          </span>
                         </td>
                         <td style={{ padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                           {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
@@ -363,7 +385,7 @@ const Payments = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={isAdmin ? "5" : "4"} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      <td colSpan={isAdmin ? "7" : "6"} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                         No payment records found matching your filters.
                       </td>
                     </tr>
@@ -385,7 +407,7 @@ const Payments = () => {
           <div className="glass-panel" style={{
             background: 'var(--bg-secondary, #18181b)',
             border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
-            borderRadius: '16px', width: '100%', maxWidth: '480px', padding: '1.75rem'
+            borderRadius: '16px', width: '100%', maxWidth: '500px', padding: '1.75rem', maxHeight: '90vh', overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
@@ -404,6 +426,18 @@ const Payments = () => {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
               <div className="form-group">
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Receipt Number</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  value={receiptNo}
+                  onChange={(e) => setReceiptNo(e.target.value)}
+                  placeholder="Auto-generated if left empty"
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)', fontFamily: 'monospace' }}
+                />
+              </div>
+
+              <div className="form-group">
                 <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Resident / Member *</label>
                 <select
                   className="input-field"
@@ -421,45 +455,76 @@ const Payments = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Amount (₹) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="input-field"
-                  placeholder="e.g. 6000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Amount (₹) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="input-field"
+                    placeholder="e.g. 6000"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Payment Mode</label>
+                  <select
+                    className="input-field"
+                    value={paymentMode}
+                    onChange={(e) => setPaymentMode(e.target.value)}
+                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
+                  >
+                    <option value="Cash" style={{ background: '#18181b' }}>Cash</option>
+                    <option value="UPI" style={{ background: '#18181b' }}>UPI / GPay / PhonePe</option>
+                    <option value="Bank Transfer" style={{ background: '#18181b' }}>Bank Transfer (NEFT/IMPS)</option>
+                    <option value="Card" style={{ background: '#18181b' }}>Credit/Debit Card</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Payment Date *</label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Status *</label>
+                  <select
+                    className="input-field"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
+                  >
+                    <option value="Paid" style={{ background: '#18181b', color: '#10b981' }}>Paid</option>
+                    <option value="Pending" style={{ background: '#18181b', color: '#f59e0b' }}>Pending</option>
+                    <option value="Overdue" style={{ background: '#18181b', color: '#ef4444' }}>Overdue</option>
+                  </select>
+                </div>
               </div>
 
               <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Payment Date *</label>
-                <input
-                  type="date"
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Remarks / Reference</label>
+                <textarea
                   className="input-field"
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
+                  rows="2"
+                  placeholder="Optional payment notes, transaction ID..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)', resize: 'none' }}
                 />
-              </div>
-
-              <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Status *</label>
-                <select
-                  className="input-field"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'inherit', border: '1px solid var(--border-color)' }}
-                >
-                  <option value="Paid" style={{ background: '#18181b', color: '#10b981' }}>Paid</option>
-                  <option value="Pending" style={{ background: '#18181b', color: '#f59e0b' }}>Pending</option>
-                  <option value="Overdue" style={{ background: '#18181b', color: '#ef4444' }}>Overdue</option>
-                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
