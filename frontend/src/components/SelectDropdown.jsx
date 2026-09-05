@@ -58,7 +58,6 @@ const SelectDropdown = ({
   const handleSelect = (optionValue) => {
     if (disabled) return;
     if (onChange) {
-      // Send synthetic event object compatible with standard HTML select event handlers
       onChange({
         target: {
           name: name,
@@ -117,14 +116,14 @@ const SelectDropdown = ({
   };
 
   return (
-    <div className={`relative w-full ${className}`} ref={dropdownRef} style={style}>
+    <div className={`relative w-full ${className}`} ref={dropdownRef} style={{ width: '100%', ...style }}>
       {label && (
         <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
-      {/* Dropdown Trigger Button */}
+      {/* Dropdown Trigger Button - Perfectly matches standard form text input height & dimensions */}
       <button
         type="button"
         id={id}
@@ -133,12 +132,13 @@ const SelectDropdown = ({
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
+        style={{ minHeight: '44px' }}
+        className={`w-full box-border flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-gray-400'
             : isOpen
             ? 'bg-white dark:bg-gray-800 border-emerald-500 dark:border-emerald-500 ring-2 ring-emerald-500/20 text-gray-900 dark:text-gray-100 shadow-sm'
-            : 'bg-white dark:bg-gray-800/90 border-gray-300 dark:border-gray-700 hover:border-emerald-500/70 dark:hover:border-emerald-500/70 text-gray-900 dark:text-gray-100 shadow-xs'
+            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-emerald-500/70 dark:hover:border-emerald-500/70 text-gray-900 dark:text-gray-100 shadow-xs'
         }`}
       >
         <span className="truncate flex items-center gap-2">
