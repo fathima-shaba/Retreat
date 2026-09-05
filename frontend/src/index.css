@@ -1091,6 +1091,33 @@ input {
   width: 6px;
 }
 
+/* Responsive Form Modal Grids */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.form-grid-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-grid-2,
+  .form-grid-3,
+  .form-grid-fit {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ==========================================================================
    MOBILE-APP RESPONSIVE & TOUCH OPTIMIZATIONS
    ========================================================================== */

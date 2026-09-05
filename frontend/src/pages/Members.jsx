@@ -15,6 +15,7 @@ const Members = () => {
   const [editingId, setEditingId] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -210,6 +211,7 @@ const Members = () => {
 
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     const url = editingId ? `${API_BASE_URL}/members/${editingId}` : `${API_BASE_URL}/members`;
     const method = editingId ? 'PUT' : 'POST';
     
@@ -245,16 +247,25 @@ const Members = () => {
 
       if (res.ok) {
         setShowModal(false);
+        setStudentData({ 
+          name: '', email: '', phone: '', dob: '', aadhar_number: '', guardian_name: '', guardian_phone: '',
+          room_id: '', sharing_type: '', address: '', 
+          joined_date: new Date().toISOString().split('T')[0],
+          admission_fee: 0, deposit_fee: 0, rent_fee: 0, next_due_date: '',
+          member_type: 'Student', institution_details: ''
+        });
         setSuccessMessage(editingId ? 'Resident updated successfully!' : 'Resident added successfully!');
         setTimeout(() => setSuccessMessage(''), 3500);
         fetchData();
       } else {
-        const errorData = await res.json();
+        const errorData = await res.json().catch(() => ({}));
         setValidationError(errorData.error || errorData.message || "Failed to save resident record.");
       }
     } catch (err) {
       console.error(err);
       setValidationError("Error connecting to server to save resident.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -437,7 +448,7 @@ const Members = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="glass-panel section-card animate-fade-in" style={{ width: '100%', maxWidth: '680px', padding: '2rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-panel section-card animate-fade-in" style={{ width: '100%', maxWidth: '680px', padding: '2rem 2rem 4rem 2rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
             <button 
               onClick={() => setShowModal(false)}
               style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', color: 'var(--text-secondary)' }}
@@ -471,7 +482,7 @@ const Members = () => {
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <User size={16} color="var(--accent-primary)" /> Resident Personal Details
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                <div className="form-grid-fit">
                   <div className="form-group">
                     <label>Full Name *</label>
                     <input type="text" className="input-field" value={studentData.name} onChange={(e) => { setValidationError(''); setStudentData({...studentData, name: e.target.value}); }} required />
@@ -500,7 +511,7 @@ const Members = () => {
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Shield size={16} color="var(--accent-primary)" /> Guardian / Parent Details
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                <div className="form-grid-2">
                   <div className="form-group">
                     <label>Guardian Name</label>
                     <input type="text" className="input-field" placeholder="Parent or Guardian name" value={studentData.guardian_name} onChange={(e) => setStudentData({...studentData, guardian_name: e.target.value})} />
@@ -513,7 +524,7 @@ const Members = () => {
               </div>
 
               {/* Section 3: Occupation / Resident Type */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Resident Type</label>
                   <CustomSelect 
@@ -533,7 +544,7 @@ const Members = () => {
               </div>
 
               {/* Section 4: Room Assignment & Sharing Arrangement */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Assign Room</label>
                   <CustomSelect 
@@ -572,7 +583,7 @@ const Members = () => {
               </div>
 
               {/* Section 5: Financials */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-3">
                 <div className="form-group">
                   <label>Monthly Rent (₹)</label>
                   <input type="number" step="100" className="input-field" value={studentData.rent_fee} onChange={(e) => setStudentData({...studentData, rent_fee: e.target.value})} />
@@ -588,7 +599,7 @@ const Members = () => {
               </div>
 
               {/* Section 6: Dates & Address */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Joined / Move-in Date</label>
                   <input type="date" className="input-field" value={studentData.joined_date} onChange={(e) => setStudentData({...studentData, joined_date: e.target.value})} />
@@ -616,6 +627,7 @@ const Members = () => {
                   type="button" 
                   onClick={() => setShowModal(false)}
                   className="btn-secondary"
+                  disabled={isSubmitting}
                   style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
                 >
                   Cancel
@@ -623,9 +635,10 @@ const Members = () => {
                 <button 
                   type="submit" 
                   className="btn-primary" 
-                  style={{ padding: '0.75rem 1.75rem', borderRadius: '12px' }}
+                  disabled={isSubmitting}
+                  style={{ padding: '0.75rem 1.75rem', borderRadius: '12px', opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
                 >
-                  {editingId ? 'Save Changes' : 'Save Resident'}
+                  {isSubmitting ? (editingId ? 'Saving Changes...' : 'Saving Resident...') : (editingId ? 'Save Changes' : 'Save Resident')}
                 </button>
               </div>
             </form>
