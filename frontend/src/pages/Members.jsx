@@ -42,6 +42,24 @@ const Members = () => {
     institution_details: ''
   });
 
+  const fetchRooms = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resRooms = await fetch(`${API_BASE_URL}/rooms`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resRooms.ok) {
+        const dataRooms = await resRooms.json();
+        const roomsArr = Array.isArray(dataRooms) ? dataRooms : [];
+        setRooms(roomsArr);
+        return roomsArr;
+      }
+    } catch (err) {
+      console.error("Failed to fetch rooms", err);
+    }
+    return [];
+  };
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -54,14 +72,7 @@ const Members = () => {
         setMembers(Array.isArray(dataStudents) ? dataStudents : []);
       }
 
-      const resRooms = await fetch(`${API_BASE_URL}/rooms`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (resRooms.ok) {
-        const dataRooms = await resRooms.json();
-        setRooms(Array.isArray(dataRooms) ? dataRooms : []);
-      }
-      
+      await fetchRooms();
     } catch (err) {
       console.error("Failed to fetch data", err);
     }
@@ -71,7 +82,7 @@ const Members = () => {
     fetchData();
   }, []);
 
-  const openAddModal = () => {
+  const openAddModal = async () => {
     setEditingId(null);
     setValidationError('');
     setStudentData({ 
@@ -82,9 +93,10 @@ const Members = () => {
       member_type: 'Student', institution_details: ''
     });
     setShowModal(true);
+    await fetchRooms();
   };
 
-  const openEditModal = (member) => {
+  const openEditModal = async (member) => {
     setEditingId(member.id);
     setValidationError('');
     setStudentData({ 
@@ -107,6 +119,7 @@ const Members = () => {
       institution_details: member.institution_details || ''
     });
     setShowModal(true);
+    await fetchRooms();
   };
 
   const handleDelete = async (id) => {
@@ -124,6 +137,36 @@ const Members = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Helper to extract or dynamically generate sharing options based on room capacity
+  const getSharingOptionsForRoom = (room) => {
+    if (!room) return [];
+    if (room.sharing_rates && room.sharing_rates.length > 0) {
+      return room.sharing_rates.map(rate => ({
+        value: String(rate.sharing_type),
+        label: `${rate.sharing_type} Share (₹${Number(rate.monthly_rent).toLocaleString()}/mo)`,
+        monthly_rent: Number(rate.monthly_rent)
+      }));
+    }
+    // Dynamic fallback options based on capacity (1..capacity)
+    const cap = room.capacity || 2;
+    const rates = [];
+    for (let i = 1; i <= cap; i++) {
+      let rent = 6000;
+      if (i === 1) rent = 8000;
+      else if (i === 2) rent = 6000;
+      else if (i === 3) rent = 5000;
+      else if (i === 4) rent = 4500;
+      else if (i === 5) rent = 4000;
+      else if (i === 6) rent = 3500;
+      rates.push({
+        value: String(i),
+        label: `${i} Share (₹${rent.toLocaleString()}/mo)`,
+        monthly_rent: rent
+      });
+    }
+    return rates;
   };
 
   // Helper to handle room selection and auto-populate rent based on sharing rates
@@ -148,19 +191,21 @@ const Members = () => {
         setValidationError(`Warning: Room ${selectedRoom.room_number} is fully occupied (${currentOccupants}/${selectedRoom.capacity} beds assigned).`);
       }
 
-      if (selectedRoom.sharing_rates && selectedRoom.sharing_rates.length > 0) {
-        const defaultRate = selectedRoom.sharing_rates.find(sr => sr.sharing_type === selectedRoom.capacity) || selectedRoom.sharing_rates[0];
+      const availableRates = getSharingOptionsForRoom(selectedRoom);
+      if (availableRates.length > 0) {
+        const defaultRate = availableRates.find(r => String(r.value) === String(selectedRoom.capacity)) || availableRates[availableRates.length - 1] || availableRates[0];
         setStudentData({
           ...studentData,
           room_id: String(selectedRoomId),
-          sharing_type: String(defaultRate.sharing_type),
+          sharing_type: String(defaultRate.value),
           rent_fee: Number(defaultRate.monthly_rent)
         });
       } else {
         setStudentData({
           ...studentData,
           room_id: String(selectedRoomId),
-          sharing_type: ''
+          sharing_type: '',
+          rent_fee: 0
         });
       }
     }
@@ -170,23 +215,21 @@ const Members = () => {
   const handleSharingChange = (selectedSharingType) => {
     setValidationError('');
     const selectedRoom = rooms.find(r => String(r.id) === String(studentData.room_id));
+    const availableRates = getSharingOptionsForRoom(selectedRoom);
+    const matchedRate = availableRates.find(sr => String(sr.value) === String(selectedSharingType));
     
-    if (selectedRoom && selectedRoom.sharing_rates) {
-      const matchedRate = selectedRoom.sharing_rates.find(sr => String(sr.sharing_type) === String(selectedSharingType));
-      if (matchedRate) {
-        setStudentData({
-          ...studentData,
-          sharing_type: String(selectedSharingType),
-          rent_fee: Number(matchedRate.monthly_rent)
-        });
-        return;
-      }
+    if (matchedRate) {
+      setStudentData({
+        ...studentData,
+        sharing_type: String(selectedSharingType),
+        rent_fee: Number(matchedRate.monthly_rent)
+      });
+    } else {
+      setStudentData({
+        ...studentData,
+        sharing_type: String(selectedSharingType)
+      });
     }
-
-    setStudentData({
-      ...studentData,
-      sharing_type: String(selectedSharingType)
-    });
   };
 
   const validateForm = () => {
@@ -550,10 +593,16 @@ const Members = () => {
                   <CustomSelect 
                     options={[
                       { value: '', label: '-- Unassigned --' },
-                      ...rooms.map(r => ({
-                        value: String(r.id),
-                        label: `${r.room_number} (${r.type}) - ${r.status}`
-                      }))
+                      ...rooms.map(r => {
+                        const occupants = members.filter(m => String(m.room_id) === String(r.id) && m.id !== editingId).length;
+                        const availableBeds = Math.max(0, (r.capacity || 2) - occupants);
+                        const floorText = r.floor ? `Floor ${r.floor}` : '';
+                        const statusTag = r.status ? `[${r.status}]` : '';
+                        return {
+                          value: String(r.id),
+                          label: `Room ${r.room_number} ${floorText ? `(${floorText})` : ''} - ${r.capacity || 2} Beds (${availableBeds} free) ${statusTag}`
+                        };
+                      })
                     ]}
                     value={studentData.room_id}
                     onChange={(e) => handleRoomChange(e.target.value)}
@@ -565,8 +614,8 @@ const Members = () => {
                   {studentData.room_id && currentRoomRates.length > 0 ? (
                     <CustomSelect 
                       options={currentRoomRates.map(rate => ({
-                        value: String(rate.sharing_type),
-                        label: `${rate.sharing_type} Share (₹${rate.monthly_rent.toLocaleString()}/mo)`
+                        value: String(rate.value),
+                        label: rate.label
                       }))}
                       value={studentData.sharing_type}
                       onChange={(e) => handleSharingChange(e.target.value)}
