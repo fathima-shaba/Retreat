@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Download, FileText, PieChart, TrendingUp, Users, DollarSign, Calendar, RefreshCw } from 'lucide-react';
+import { Download, FileText, PieChart, TrendingUp, DollarSign, RefreshCw } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Reports = () => {
   const [occupancyData, setOccupancyData] = useState({
@@ -48,7 +50,7 @@ const Reports = () => {
   }, []);
 
   const handleDownloadCSV = async (type) => {
-    setDownloading(type);
+    setDownloading(`${type}_csv`);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE_URL}/reports/export/${type}`, {
@@ -71,6 +73,128 @@ const Reports = () => {
     }
   };
 
+  const handleDownloadPDF = async (type) => {
+    setDownloading(`${type}_pdf`);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const doc = new jsPDF();
+      const timestamp = new Date().toLocaleString();
+
+      // Top Title Banner
+      doc.setFillColor(16, 185, 129); // Emerald theme
+      doc.rect(0, 0, 210, 15, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.text("HOSTEL MANAGEMENT SYSTEM — OFFICIAL REPORT", 14, 10);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+
+      if (type === 'members') {
+        const res = await fetch(`${API_BASE_URL}/members`, { headers });
+        const data = res.ok ? await res.json() : [];
+        const membersList = Array.isArray(data) ? data : [];
+
+        doc.text("Resident & Occupancy Roster Report", 14, 26);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Generated on: ${timestamp} | Total Residents: ${membersList.length}`, 14, 33);
+
+        const tableColumn = ["ID", "Name", "Email", "Phone", "Sharing", "Rent (INR)", "Joined Date"];
+        const tableRows = membersList.map(m => [
+          m.id,
+          m.name,
+          m.email,
+          m.phone || 'N/A',
+          m.sharing_type ? `${m.sharing_type} Share` : 'N/A',
+          m.rent_fee ? `Rs. ${m.rent_fee}` : 'Rs. 0',
+          m.joined_date ? m.joined_date.split('T')[0] : 'N/A'
+        ]);
+
+        autoTable(doc, {
+          head: [tableColumn],
+          body: tableRows,
+          startY: 38,
+          headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          styles: { fontSize: 8.5, cellPadding: 3 }
+        });
+
+      } else if (type === 'payments') {
+        const res = await fetch(`${API_BASE_URL}/payments`, { headers });
+        const data = res.ok ? await res.json() : [];
+        const paymentsList = Array.isArray(data) ? data : [];
+
+        doc.text("Fee & Payment Ledger Report", 14, 26);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Generated on: ${timestamp} | Total Transactions: ${paymentsList.length}`, 14, 33);
+
+        const tableColumn = ["Receipt #", "Resident Name", "Amount (INR)", "Status", "Mode", "Date"];
+        const tableRows = paymentsList.map(p => [
+          p.receipt_no || 'N/A',
+          p.members ? p.members.name : (p.resident_name || 'N/A'),
+          `Rs. ${p.amount}`,
+          p.status,
+          p.payment_mode || 'Cash',
+          p.payment_date ? p.payment_date.split('T')[0] : 'N/A'
+        ]);
+
+        autoTable(doc, {
+          head: [tableColumn],
+          body: tableRows,
+          startY: 38,
+          headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          styles: { fontSize: 8.5, cellPadding: 3 }
+        });
+
+      } else if (type === 'expenses') {
+        const res = await fetch(`${API_BASE_URL}/expenses`, { headers });
+        const data = res.ok ? await res.json() : [];
+        const expensesList = Array.isArray(data) ? data : [];
+
+        doc.text("Operational Expenses Log Report", 14, 26);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Generated on: ${timestamp} | Total Expenses: ${expensesList.length}`, 14, 33);
+
+        const tableColumn = ["ID", "Category", "Amount (INR)", "Description", "Method", "Date"];
+        const tableRows = expensesList.map(e => [
+          e.id,
+          e.category,
+          `Rs. ${e.amount}`,
+          e.description || 'N/A',
+          e.payment_method || 'Cash',
+          e.expense_date ? e.expense_date.split('T')[0] : 'N/A'
+        ]);
+
+        autoTable(doc, {
+          head: [tableColumn],
+          body: tableRows,
+          startY: 38,
+          headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          styles: { fontSize: 8.5, cellPadding: 3 }
+        });
+      }
+
+      doc.save(`report_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Error generating PDF report.");
+    } finally {
+      setDownloading('');
+    }
+  };
+
   return (
     <div className="dashboard-layout animate-fade-in">
       <Sidebar />
@@ -81,7 +205,7 @@ const Reports = () => {
           <div className="page-header">
             <div>
               <h1 className="page-title">Reports & Analytics</h1>
-              <p className="page-subtitle">Operational summaries, financial metrics, and CSV exports</p>
+              <p className="page-subtitle">Operational summaries, financial metrics, CSV & PDF exports</p>
             </div>
             <button className="btn-secondary" onClick={fetchReports} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh Data
@@ -162,55 +286,88 @@ const Reports = () => {
           {/* Export Center Cards */}
           <div className="dashboard-grid-2">
             <div className="glass-panel section-card">
-              <h3 className="section-title" style={{ marginBottom: '0.5rem' }}>Operational Reports</h3>
+              <h3 className="section-title" style={{ marginBottom: '0.5rem' }}>Operational & Financial Reports</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Export comprehensive system spreadsheets for audit, accounting, and occupancy verification.
+                Export comprehensive system spreadsheets (CSV) or structured PDF documents for accounting and audits.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                  <div>
+                {/* Member Roster Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Resident & Occupancy Roster</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Full resident roster, contact details, assigned rooms, and monthly rent fees.</p>
                   </div>
-                  <button 
-                    className="btn-primary" 
-                    disabled={downloading === 'members'}
-                    onClick={() => handleDownloadCSV('members')}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    <Download size={14} /> {downloading === 'members' ? 'Exporting...' : 'Export CSV'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      className="btn-primary" 
+                      disabled={downloading === 'members_csv'}
+                      onClick={() => handleDownloadCSV('members')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <Download size={14} /> {downloading === 'members_csv' ? 'Exporting...' : 'Export CSV'}
+                    </button>
+                    <button 
+                      className="btn-secondary" 
+                      disabled={downloading === 'members_pdf'}
+                      onClick={() => handleDownloadPDF('members')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <FileText size={14} /> {downloading === 'members_pdf' ? 'Generating...' : 'Export PDF'}
+                    </button>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                  <div>
+                {/* Payment Ledger Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Fee & Payment Ledger</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Complete financial transaction log, receipt numbers, status, and payment modes.</p>
                   </div>
-                  <button 
-                    className="btn-primary" 
-                    disabled={downloading === 'payments'}
-                    onClick={() => handleDownloadCSV('payments')}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    <Download size={14} /> {downloading === 'payments' ? 'Exporting...' : 'Export CSV'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      className="btn-primary" 
+                      disabled={downloading === 'payments_csv'}
+                      onClick={() => handleDownloadCSV('payments')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <Download size={14} /> {downloading === 'payments_csv' ? 'Exporting...' : 'Export CSV'}
+                    </button>
+                    <button 
+                      className="btn-secondary" 
+                      disabled={downloading === 'payments_pdf'}
+                      onClick={() => handleDownloadPDF('payments')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <FileText size={14} /> {downloading === 'payments_pdf' ? 'Generating...' : 'Export PDF'}
+                    </button>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                  <div>
+                {/* Expenses Log Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
                     <h4 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Operational Expenses Log</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Detailed record of mess, maintenance, labor salaries, and utility bills.</p>
                   </div>
-                  <button 
-                    className="btn-primary" 
-                    disabled={downloading === 'expenses'}
-                    onClick={() => handleDownloadCSV('expenses')}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    <Download size={14} /> {downloading === 'expenses' ? 'Exporting...' : 'Export CSV'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      className="btn-primary" 
+                      disabled={downloading === 'expenses_csv'}
+                      onClick={() => handleDownloadCSV('expenses')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <Download size={14} /> {downloading === 'expenses_csv' ? 'Exporting...' : 'Export CSV'}
+                    </button>
+                    <button 
+                      className="btn-secondary" 
+                      disabled={downloading === 'expenses_pdf'}
+                      onClick={() => handleDownloadPDF('expenses')}
+                      style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+                    >
+                      <FileText size={14} /> {downloading === 'expenses_pdf' ? 'Generating...' : 'Export PDF'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
