@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
-import { Plus, X, Edit2, Trash2, Wallet, TrendingDown, Calendar, Receipt, Filter, Tag, CheckCircle2, AlertCircle, Settings, Download } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Calendar, Filter, DollarSign, PieChart, TrendingUp, Tag, FileText, CheckCircle2, ChevronRight, RefreshCw, FolderPlus } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const Expenses = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -49,7 +50,7 @@ const Expenses = () => {
 
   // Fetch Categories from DB
   const fetchCategories = () => {
-    fetch(import.meta.env.VITE_API_URL + '/expenses/categories', {
+    fetch(`${API_BASE_URL}/expenses/categories`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -69,7 +70,7 @@ const Expenses = () => {
       queryParams.append('endDate', endDate);
     }
 
-    fetch(`${import.meta.env.VITE_API_URL}/expenses?${queryParams.toString()}`, {
+    fetch(`${API_BASE_URL}/expenses?${queryParams.toString()}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -86,7 +87,7 @@ const Expenses = () => {
       queryParams.append('endDate', endDate);
     }
 
-    fetch(`${import.meta.env.VITE_API_URL}/expenses/stats?${queryParams.toString()}`, {
+    fetch(`${API_BASE_URL}/expenses/stats?${queryParams.toString()}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -138,7 +139,7 @@ const Expenses = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this expense record?")) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/expenses/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/expenses/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -172,7 +173,7 @@ const Expenses = () => {
 
     if (!validateForm()) return;
 
-    const url = editingId ? `${import.meta.env.VITE_API_URL}/expenses/${editingId}` : import.meta.env.VITE_API_URL + '/expenses';
+    const url = editingId ? `${API_BASE_URL}/expenses/${editingId}` : `${API_BASE_URL}/expenses`;
     const method = editingId ? 'PUT' : 'POST';
     
     try {
@@ -214,7 +215,7 @@ const Expenses = () => {
     if (!newCategoryName.trim()) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/expenses/categories`, {
+      const res = await fetch(`${API_BASE_URL}/expenses/categories`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -236,7 +237,7 @@ const Expenses = () => {
     if (!editingCatName.trim()) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/expenses/categories/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/expenses/categories/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -260,7 +261,7 @@ const Expenses = () => {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Delete this expense category?")) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/expenses/categories/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/expenses/categories/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });

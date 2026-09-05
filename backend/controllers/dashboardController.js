@@ -1,32 +1,40 @@
-const db = require('../config/db');
+const supabase = require('../config/db');
 
-exports.getStats = (req, res) => {
-    const queries = {
-        totalStudents: "SELECT COUNT(*) as count FROM members",
-        totalRooms: "SELECT COUNT(*) as count FROM rooms",
-        occupiedRooms: "SELECT COUNT(*) as count FROM rooms WHERE status='Occupied'",
-        vacantRooms: "SELECT COUNT(*) as count FROM rooms WHERE status='Available'",
-        totalPayments: "SELECT SUM(amount) as sum FROM payments WHERE status='Paid'",
-        pendingPayments: "SELECT SUM(amount) as sum FROM payments WHERE status='Pending'"
-    };
+exports.getStats = async (req, res) => {
+    try {
+        const [
+            { count: totalStudents, error: err1 },
+            { count: totalRooms, error: err2 },
+            { count: occupiedRooms, error: err3 },
+            { count: vacantRooms, error: err4 },
+            { data: paidPayments, error: err5 },
+            { data: pendingPaymentsData, error: err6 }
+        ] = await Promise.all([
+            supabase.from('members').select('*', { count: 'exact', head: true }),
+            supabase.from('rooms').select('*', { count: 'exact', head: true }),
+            supabase.from('rooms').select('*', { count: 'exact', head: true }).eq('status', 'Occupied'),
+            supabase.from('rooms').select('*', { count: 'exact', head: true }).eq('status', 'Available'),
+            supabase.from('payments').select('amount').eq('status', 'Paid'),
+            supabase.from('payments').select('amount').eq('status', 'Pending')
+        ]);
 
-    let results = {};
-    let completed = 0;
-    const queryKeys = Object.keys(queries);
+        if (err1 || err2 || err3 || err4 || err5 || err6) {
+            const firstErr = err1 || err2 || err3 || err4 || err5 || err6;
+            return res.status(500).json({ error: firstErr.message });
+        }
 
-    if (queryKeys.length === 0) {
-        return res.json(results);
-    }
+        const totalPayments = (paidPayments || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+        const pendingPayments = (pendingPaymentsData || []).reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
 
-    queryKeys.forEach(key => {
-        db.query(queries[key], (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            results[key] = result[0].count !== undefined ? result[0].count : (result[0].sum || 0);
-            completed++;
-
-            if (completed === queryKeys.length) {
-                res.json(results);
-            }
+        res.json({
+            totalStudents: totalStudents || 0,
+            totalRooms: totalRooms || 0,
+            occupiedRooms: occupiedRooms || 0,
+            vacantRooms: vacantRooms || 0,
+            totalPayments,
+            pendingPayments
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };

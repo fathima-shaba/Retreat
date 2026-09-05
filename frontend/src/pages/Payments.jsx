@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const Payments = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -9,7 +10,7 @@ const Payments = () => {
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
-    fetch(import.meta.env.VITE_API_URL + '/payments', {
+    fetch(`${API_BASE_URL}/payments`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())

@@ -3,7 +3,8 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Edit2, LayoutDashboard, List, Layers, Trash2, Tag, AlertCircle } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Home, BedDouble, AlertCircle, IndianRupee } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const Rooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -29,7 +30,7 @@ const Rooms = () => {
   const [validationError, setValidationError] = useState('');
 
   const fetchRooms = () => {
-    fetch(import.meta.env.VITE_API_URL + '/rooms', {
+    fetch(`${API_BASE_URL}/rooms`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -85,7 +86,7 @@ const Rooms = () => {
     if (!window.confirm('Are you sure you want to delete this room?')) return;
     
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/rooms/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -204,7 +205,7 @@ const Rooms = () => {
 
     if (!validateForm()) return;
 
-    const url = editingId ? `${import.meta.env.VITE_API_URL}/rooms/${editingId}` : import.meta.env.VITE_API_URL + '/rooms';
+    const url = editingId ? `${API_BASE_URL}/rooms/${editingId}` : `${API_BASE_URL}/rooms`;
     const method = editingId ? 'PUT' : 'POST';
     
     try {

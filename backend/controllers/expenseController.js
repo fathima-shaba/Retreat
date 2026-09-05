@@ -1,183 +1,272 @@
-const db = require('../config/db');
+const supabase = require('../config/db');
+
+// --- Helper Date Function ---
+function getDateRangeForPeriod(period, startDate, endDate) {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    if (period === 'today') {
+        return { gte: todayStr, lte: todayStr };
+    } else if (period === 'yesterday') {
+        const yest = new Date(now);
+        yest.setDate(yest.getDate() - 1);
+        const yestStr = yest.toISOString().split('T')[0];
+        return { gte: yestStr, lte: yestStr };
+    } else if (period === 'week') {
+        const day = now.getDay();
+        const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(now.setDate(diffToMonday));
+        const sunday = new Date(monday);
+        sunday.setDate(sunday.getDate() + 6);
+        return { gte: monday.toISOString().split('T')[0], lte: sunday.toISOString().split('T')[0] };
+    } else if (period === 'month') {
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+        return { gte: `${year}-${month}-01`, lte: `${year}-${month}-${String(lastDay).padStart(2, '0')}` };
+    } else if (period === 'year') {
+        const year = now.getFullYear();
+        return { gte: `${year}-01-01`, lte: `${year}-12-31` };
+    } else if (period === 'custom' && startDate && endDate) {
+        return { gte: startDate, lte: endDate };
+    }
+    return null;
+}
 
 // --- Category Handlers ---
 
-exports.getCategories = (req, res) => {
-    db.query("SELECT * FROM expense_categories WHERE is_active = 1 ORDER BY name ASC", (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
+exports.getCategories = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('expense_categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('name', { ascending: true });
+
+        if (error) return res.status(500).json({ error: error.message });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.createCategory = (req, res) => {
+exports.createCategory = async (req, res) => {
     const { name } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ error: "Category name is required" });
 
-    db.query(
-        "INSERT INTO expense_categories (name) VALUES (?) ON DUPLICATE KEY UPDATE is_active = 1",
-        [name.trim()],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.status(201).json({ id: result.insertId, name: name.trim() });
+    const trimmedName = name.trim();
+    try {
+        const { data, error } = await supabase
+            .from('expense_categories')
+            .upsert({ name: trimmedName, is_active: true }, { onConflict: 'name' })
+            .select();
+
+        if (error) return res.status(500).json({ error: error.message });
+        const created = data && data[0] ? data[0] : { name: trimmedName };
+        res.status(201).json({ id: created.id, name: trimmedName });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.updateCategory = async (req, res) => {
+    const { name } = req.body;
+    const catId = req.params.id;
+    if (!name || !name.trim()) return res.status(400).json({ error: "Category name is required" });
+
+    try {
+        const { data: oldCat, error: fetchErr } = await supabase
+            .from('expense_categories')
+            .select('name')
+            .eq('id', catId);
+
+        if (fetchErr || !oldCat || oldCat.length === 0) {
+            return res.status(404).json({ error: "Category not found" });
         }
-    );
-};
 
-exports.updateCategory = (req, res) => {
-    const { name } = req.body;
-    const catId = req.params.id;
-    if (!name || !name.trim()) return res.status(400).json({ error: "Category name is required" });
-
-    // First get old category name to update existing expense records
-    db.query("SELECT name FROM expense_categories WHERE id = ?", [catId], (err, oldCat) => {
-        if (err || oldCat.length === 0) return res.status(404).json({ error: "Category not found" });
         const oldName = oldCat[0].name;
+        const newName = name.trim();
 
-        db.query(
-            "UPDATE expense_categories SET name = ? WHERE id = ?",
-            [name.trim(), catId],
-            (err) => {
-                if (err) return res.status(500).json({ error: err.message });
+        const { error: updateErr } = await supabase
+            .from('expense_categories')
+            .update({ name: newName })
+            .eq('id', catId);
 
-                // Rename category in existing expenses
-                db.query("UPDATE expenses SET category = ? WHERE category = ?", [name.trim(), oldName], () => {
-                    res.json({ message: "Category updated successfully" });
-                });
-            }
-        );
-    });
+        if (updateErr) return res.status(500).json({ error: updateErr.message });
+
+        // Rename category in existing expenses
+        await supabase
+            .from('expenses')
+            .update({ category: newName })
+            .eq('category', oldName);
+
+        res.json({ message: "Category updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.deleteCategory = (req, res) => {
+exports.deleteCategory = async (req, res) => {
     const catId = req.params.id;
-    db.query("DELETE FROM expense_categories WHERE id = ?", [catId], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const { error } = await supabase
+            .from('expense_categories')
+            .delete()
+            .eq('id', catId);
+
+        if (error) return res.status(500).json({ error: error.message });
         res.json({ message: "Category removed successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 // --- Expense Operations & Filtering ---
 
-exports.getAllExpenses = (req, res) => {
+exports.getAllExpenses = async (req, res) => {
     const { period, startDate, endDate, category } = req.query;
 
-    let conditions = [];
-    let params = [];
+    try {
+        let query = supabase.from('expenses').select('*');
 
-    if (category && category !== 'All') {
-        conditions.push("category = ?");
-        params.push(category);
+        if (category && category !== 'All') {
+            query = query.eq('category', category);
+        }
+
+        const dateRange = getDateRangeForPeriod(period, startDate, endDate);
+        if (dateRange) {
+            query = query.gte('expense_date', dateRange.gte).lte('expense_date', dateRange.lte);
+        }
+
+        query = query.order('expense_date', { ascending: false }).order('id', { ascending: false });
+
+        const { data, error } = await query;
+        if (error) return res.status(500).json({ error: error.message });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    if (period === 'today') {
-        conditions.push("DATE(expense_date) = CURDATE()");
-    } else if (period === 'yesterday') {
-        conditions.push("DATE(expense_date) = CURDATE() - INTERVAL 1 DAY");
-    } else if (period === 'week') {
-        conditions.push("YEARWEEK(expense_date, 1) = YEARWEEK(CURDATE(), 1)");
-    } else if (period === 'month') {
-        conditions.push("MONTH(expense_date) = MONTH(CURDATE()) AND YEAR(expense_date) = YEAR(CURDATE())");
-    } else if (period === 'year') {
-        conditions.push("YEAR(expense_date) = YEAR(CURDATE())");
-    } else if (period === 'custom' && startDate && endDate) {
-        conditions.push("DATE(expense_date) BETWEEN ? AND ?");
-        params.push(startDate, endDate);
-    }
-
-    const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
-    const query = `SELECT * FROM expenses ${whereClause} ORDER BY expense_date DESC, id DESC`;
-
-    db.query(query, params, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
 };
 
-exports.getExpenseStats = (req, res) => {
+exports.getExpenseStats = async (req, res) => {
     const { startDate, endDate, category } = req.query;
 
-    // Real-time SQL aggregations for periods
-    const mainStatsQuery = `
-        SELECT 
-            COALESCE(SUM(CASE WHEN DATE(expense_date) = CURDATE() THEN amount ELSE 0 END), 0) as today,
-            COUNT(CASE WHEN DATE(expense_date) = CURDATE() THEN 1 END) as todayCount,
-            
-            COALESCE(SUM(CASE WHEN DATE(expense_date) = CURDATE() - INTERVAL 1 DAY THEN amount ELSE 0 END), 0) as yesterday,
-            COUNT(CASE WHEN DATE(expense_date) = CURDATE() - INTERVAL 1 DAY THEN 1 END) as yesterdayCount,
-            
-            COALESCE(SUM(CASE WHEN YEARWEEK(expense_date, 1) = YEARWEEK(CURDATE(), 1) THEN amount ELSE 0 END), 0) as thisWeek,
-            COUNT(CASE WHEN YEARWEEK(expense_date, 1) = YEARWEEK(CURDATE(), 1) THEN 1 END) as thisWeekCount,
-            
-            COALESCE(SUM(CASE WHEN MONTH(expense_date) = MONTH(CURDATE()) AND YEAR(expense_date) = YEAR(CURDATE()) THEN amount ELSE 0 END), 0) as thisMonth,
-            COUNT(CASE WHEN MONTH(expense_date) = MONTH(CURDATE()) AND YEAR(expense_date) = YEAR(CURDATE()) THEN 1 END) as thisMonthCount,
-            
-            COALESCE(SUM(CASE WHEN YEAR(expense_date) = YEAR(CURDATE()) THEN amount ELSE 0 END), 0) as thisYear,
-            COUNT(CASE WHEN YEAR(expense_date) = YEAR(CURDATE()) THEN 1 END) as thisYearCount,
-            
-            COALESCE(SUM(amount), 0) as allTime,
-            COUNT(*) as allTimeCount
-        FROM expenses
-    `;
+    try {
+        // Fetch all expenses for calculation
+        const { data: allExpenses, error } = await supabase
+            .from('expenses')
+            .select('*');
 
-    db.query(mainStatsQuery, (err, statsResult) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (error) return res.status(500).json({ error: error.message });
 
-        const stats = statsResult[0];
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
 
-        // Category-wise breakdown query
-        let catConditions = [];
-        let catParams = [];
+        const yest = new Date(now);
+        yest.setDate(yest.getDate() - 1);
+        const yestStr = yest.toISOString().split('T')[0];
 
+        // ISO Week range
+        const day = now.getDay();
+        const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(now.setDate(diffToMonday));
+        const sunday = new Date(monday);
+        sunday.setDate(sunday.getDate() + 6);
+        const mondayStr = monday.toISOString().split('T')[0];
+        const sundayStr = sunday.toISOString().split('T')[0];
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth();
+
+        let today = 0, todayCount = 0;
+        let yesterday = 0, yesterdayCount = 0;
+        let thisWeek = 0, thisWeekCount = 0;
+        let thisMonth = 0, thisMonthCount = 0;
+        let thisYear = 0, thisYearCount = 0;
+        let allTime = 0, allTimeCount = 0;
+
+        allExpenses.forEach(exp => {
+            const amt = Number(exp.amount || 0);
+            allTime += amt;
+            allTimeCount++;
+
+            const expDateStr = exp.expense_date ? String(exp.expense_date).split('T')[0] : '';
+            const expD = new Date(exp.expense_date);
+
+            if (expDateStr === todayStr) {
+                today += amt;
+                todayCount++;
+            }
+            if (expDateStr === yestStr) {
+                yesterday += amt;
+                yesterdayCount++;
+            }
+            if (expDateStr >= mondayStr && expDateStr <= sundayStr) {
+                thisWeek += amt;
+                thisWeekCount++;
+            }
+            if (expD.getFullYear() === currentYear && expD.getMonth() === currentMonth) {
+                thisMonth += amt;
+                thisMonthCount++;
+            }
+            if (expD.getFullYear() === currentYear) {
+                thisYear += amt;
+                thisYearCount++;
+            }
+        });
+
+        // Category breakdown calculation
+        let filteredForCategory = allExpenses;
         if (startDate && endDate) {
-            catConditions.push("DATE(expense_date) BETWEEN ? AND ?");
-            catParams.push(startDate, endDate);
+            filteredForCategory = filteredForCategory.filter(e => {
+                const d = e.expense_date ? String(e.expense_date).split('T')[0] : '';
+                return d >= startDate && d <= endDate;
+            });
         }
         if (category && category !== 'All') {
-            catConditions.push("category = ?");
-            catParams.push(category);
+            filteredForCategory = filteredForCategory.filter(e => e.category === category);
         }
 
-        const catWhere = catConditions.length > 0 ? "WHERE " + catConditions.join(" AND ") : "";
-        const categoryQuery = `
-            SELECT category, SUM(amount) as total_amount, COUNT(*) as expense_count
-            FROM expenses
-            ${catWhere}
-            GROUP BY category
-            ORDER BY total_amount DESC
-        `;
-
-        db.query(categoryQuery, catParams, (err, categoryResults) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            const totalCategorySum = categoryResults.reduce((sum, item) => sum + Number(item.total_amount), 0);
-
-            const categoryBreakdown = categoryResults.map(item => ({
-                category: item.category,
-                total_amount: Number(item.total_amount),
-                expense_count: item.expense_count,
-                percentage: totalCategorySum > 0 ? ((Number(item.total_amount) / totalCategorySum) * 100).toFixed(1) : '0'
-            }));
-
-            res.json({
-                today: Number(stats.today),
-                todayCount: stats.todayCount,
-                yesterday: Number(stats.yesterday),
-                yesterdayCount: stats.yesterdayCount,
-                thisWeek: Number(stats.thisWeek),
-                thisWeekCount: stats.thisWeekCount,
-                thisMonth: Number(stats.thisMonth),
-                thisMonthCount: stats.thisMonthCount,
-                thisYear: Number(stats.thisYear),
-                thisYearCount: stats.thisYearCount,
-                allTime: Number(stats.allTime),
-                allTimeCount: stats.allTimeCount,
-                categoryBreakdown
-            });
+        const catMap = {};
+        filteredForCategory.forEach(exp => {
+            const cat = exp.category;
+            const amt = Number(exp.amount || 0);
+            if (!catMap[cat]) catMap[cat] = { category: cat, total_amount: 0, expense_count: 0 };
+            catMap[cat].total_amount += amt;
+            catMap[cat].expense_count += 1;
         });
-    });
+
+        const categoryResults = Object.values(catMap).sort((a, b) => b.total_amount - a.total_amount);
+        const totalCategorySum = categoryResults.reduce((sum, item) => sum + item.total_amount, 0);
+
+        const categoryBreakdown = categoryResults.map(item => ({
+            category: item.category,
+            total_amount: item.total_amount,
+            expense_count: item.expense_count,
+            percentage: totalCategorySum > 0 ? ((item.total_amount / totalCategorySum) * 100).toFixed(1) : '0'
+        }));
+
+        res.json({
+            today,
+            todayCount,
+            yesterday,
+            yesterdayCount,
+            thisWeek,
+            thisWeekCount,
+            thisMonth,
+            thisMonthCount,
+            thisYear,
+            thisYearCount,
+            allTime,
+            allTimeCount,
+            categoryBreakdown
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.createExpense = (req, res) => {
+exports.createExpense = async (req, res) => {
     const { category, amount, description, expense_date, payment_method, notes } = req.body;
     
     if (!category || !amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
@@ -187,17 +276,28 @@ exports.createExpense = (req, res) => {
     const payMethod = payment_method || 'Cash';
     const expDate = expense_date || new Date().toISOString().split('T')[0];
 
-    db.query(
-        "INSERT INTO expenses (category, amount, description, expense_date, payment_method, notes) VALUES (?, ?, ?, ?, ?, ?)",
-        [category, parseFloat(amount), description || '', expDate, payMethod, notes || ''],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.status(201).json({ id: result.insertId, category, amount: parseFloat(amount), description, expense_date: expDate, payment_method: payMethod });
-        }
-    );
+    try {
+        const { data, error } = await supabase
+            .from('expenses')
+            .insert([{
+                category,
+                amount: parseFloat(amount),
+                description: description || '',
+                expense_date: expDate,
+                payment_method: payMethod,
+                notes: notes || ''
+            }])
+            .select();
+
+        if (error) return res.status(500).json({ error: error.message });
+        const inserted = data && data[0] ? data[0] : {};
+        res.status(201).json({ id: inserted.id, category, amount: parseFloat(amount), description, expense_date: expDate, payment_method: payMethod });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.updateExpense = (req, res) => {
+exports.updateExpense = async (req, res) => {
     const { category, amount, description, expense_date, payment_method, notes } = req.body;
     const expenseId = req.params.id;
 
@@ -208,19 +308,36 @@ exports.updateExpense = (req, res) => {
     const payMethod = payment_method || 'Cash';
     const expDate = expense_date || new Date().toISOString().split('T')[0];
 
-    db.query(
-        "UPDATE expenses SET category=?, amount=?, description=?, expense_date=?, payment_method=?, notes=? WHERE id=?",
-        [category, parseFloat(amount), description || '', expDate, payMethod, notes || '', expenseId],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ message: "Expense updated successfully" });
-        }
-    );
+    try {
+        const { error } = await supabase
+            .from('expenses')
+            .update({
+                category,
+                amount: parseFloat(amount),
+                description: description || '',
+                expense_date: expDate,
+                payment_method: payMethod,
+                notes: notes || ''
+            })
+            .eq('id', expenseId);
+
+        if (error) return res.status(500).json({ error: error.message });
+        res.json({ message: "Expense updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.deleteExpense = (req, res) => {
-    db.query("DELETE FROM expenses WHERE id = ?", [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+exports.deleteExpense = async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('expenses')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) return res.status(500).json({ error: error.message });
         res.json({ message: "Expense deleted successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };

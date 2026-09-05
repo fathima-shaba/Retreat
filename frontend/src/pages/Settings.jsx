@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Sun, Moon, Check, Key } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { API_BASE_URL } from '../apiConfig';
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -13,7 +14,7 @@ const Settings = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL + '/auth/change-password', {
+      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

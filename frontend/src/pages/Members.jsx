@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, Trash2, Calendar, UserPlus, Tag, AlertCircle, CheckCircle2, Shield, Phone, User } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const Members = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -44,7 +45,7 @@ const Members = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const resStudents = await fetch(import.meta.env.VITE_API_URL + '/members', {
+      const resStudents = await fetch(`${API_BASE_URL}/members`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resStudents.ok) {
@@ -52,7 +53,7 @@ const Members = () => {
         setMembers(Array.isArray(dataStudents) ? dataStudents : []);
       }
 
-      const resRooms = await fetch(import.meta.env.VITE_API_URL + '/rooms', {
+      const resRooms = await fetch(`${API_BASE_URL}/rooms`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resRooms.ok) {
@@ -110,7 +111,7 @@ const Members = () => {
   const handleDelete = async (id) => {
     if(!window.confirm("Are you sure you want to delete this resident record?")) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/members/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/members/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -209,7 +210,7 @@ const Members = () => {
 
     if (!validateForm()) return;
 
-    const url = editingId ? `${import.meta.env.VITE_API_URL}/members/${editingId}` : import.meta.env.VITE_API_URL + '/members';
+    const url = editingId ? `${API_BASE_URL}/members/${editingId}` : `${API_BASE_URL}/members`;
     const method = editingId ? 'PUT' : 'POST';
     
     try {

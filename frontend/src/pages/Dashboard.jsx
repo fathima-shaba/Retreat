@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Users, BedDouble, Wallet, Megaphone, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const DonutChart = ({ occupied, available, maintenance }) => {
   const total = occupied + available + maintenance;
@@ -61,7 +62,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(import.meta.env.VITE_API_URL + '/dashboard/stats', {
+        const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {

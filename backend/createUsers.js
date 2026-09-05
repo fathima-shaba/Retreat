@@ -1,36 +1,43 @@
 require('dotenv').config();
-const mysql = require('mysql2');
+const supabase = require('./config/db');
 const bcrypt = require('bcrypt');
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
+async function createInitialUsers() {
+    console.log("Creating initial system user accounts in Supabase PostgreSQL...");
 
-db.connect(async (err) => {
-    if (err) throw err;
-    console.log("Connected to MySQL");
-    
-    // Clear existing users
-    db.query("DELETE FROM users", async (err) => {
-        if (err) throw err;
-        
-        const accounts = [
-            { username: 'basim', password: 'basim123', role: 'admin' },
-            { username: 'nihal', password: 'nihal123', role: 'admin' },
-            { username: 'jaseem', password: 'jaseem123', role: 'viewer' }
-        ];
-        
-        for (let acc of accounts) {
-            const hashedPw = await bcrypt.hash(acc.password, 10);
-            db.query("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", [acc.username, hashedPw, acc.role], (err) => {
-                if (err) throw err;
-                console.log(`Created user: ${acc.username} (${acc.role})`);
-            });
+    // Retrieve initial credentials from environment variables or fallback safely
+    const adminUser = process.env.INITIAL_ADMIN_USER || 'admin';
+    const adminPass = process.env.INITIAL_ADMIN_PASS || 'admin123';
+    const viewerUser = process.env.INITIAL_VIEWER_USER || 'viewer';
+    const viewerPass = process.env.INITIAL_VIEWER_PASS || 'viewer123';
+
+    const accounts = [
+        { username: adminUser, password: adminPass, role: 'admin' },
+        { username: viewerUser, password: viewerPass, role: 'viewer' }
+    ];
+
+    try {
+        for (const acc of accounts) {
+            const hashedPassword = await bcrypt.hash(acc.password, 10);
+
+            const { data, error } = await supabase
+                .from('users')
+                .upsert(
+                    { username: acc.username, password: hashedPassword, role: acc.role },
+                    { onConflict: 'username' }
+                )
+                .select();
+
+            if (error) {
+                console.error(`❌ Failed to create/update user '${acc.username}':`, error.message);
+            } else {
+                console.log(`✅ Successfully seeded user: '${acc.username}' (${acc.role})`);
+            }
         }
-        
-        setTimeout(() => process.exit(0), 1000); // Give queries time to finish
-    });
-});
+        console.log("\nUser seeding process completed successfully.");
+    } catch (err) {
+        console.error("❌ Seeding process error:", err.message);
+    }
+}
+
+createInitialUsers();

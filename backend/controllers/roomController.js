@@ -1,139 +1,152 @@
-const db = require('../config/db');
+const supabase = require('../config/db');
 
-exports.getAllRooms = (req, res) => {
-    const query = `
-        SELECT r.*, COUNT(m.id) as occupied_count 
-        FROM rooms r 
-        LEFT JOIN members m ON r.id = m.room_id 
-        GROUP BY r.id
-    `;
+exports.getAllRooms = async (req, res) => {
+    try {
+        const { data: rooms, error: rErr } = await supabase
+            .from('rooms')
+            .select('*, members(id)')
+            .order('id', { ascending: true });
 
-    db.query(query, (err, rooms) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (rooms.length === 0) return res.json([]);
+        if (rErr) return res.status(500).json({ error: rErr.message });
+        if (!rooms || rooms.length === 0) return res.json([]);
 
-        // Fetch sharing rates for all rooms
-        db.query("SELECT * FROM room_sharing_rates ORDER BY sharing_type ASC", (err, rates) => {
-            if (err) {
-                console.error("Error fetching room_sharing_rates:", err.message);
-                // Return rooms without rates if query fails
-                return res.json(rooms.map(r => ({ ...r, sharing_rates: [] })));
-            }
+        const { data: rates, error: rateErr } = await supabase
+            .from('room_sharing_rates')
+            .select('*')
+            .order('sharing_type', { ascending: true });
 
-            // Map sharing rates to their respective rooms
-            const roomsWithRates = rooms.map(room => {
-                const roomRates = rates.filter(rate => rate.room_id === room.id);
-                return {
-                    ...room,
-                    sharing_rates: roomRates.map(r => ({
-                        id: r.id,
-                        sharing_type: r.sharing_type,
-                        monthly_rent: Number(r.monthly_rent)
-                    }))
-                };
-            });
+        if (rateErr) console.error("Error fetching room_sharing_rates:", rateErr.message);
 
-            res.json(roomsWithRates);
+        const roomsWithRates = rooms.map(room => {
+            const occupied_count = room.members ? room.members.length : 0;
+            const { members, ...roomFields } = room;
+            const roomRates = (rates || []).filter(rate => rate.room_id === room.id);
+
+            return {
+                ...roomFields,
+                occupied_count,
+                sharing_rates: roomRates.map(r => ({
+                    id: r.id,
+                    sharing_type: r.sharing_type,
+                    monthly_rent: Number(r.monthly_rent)
+                }))
+            };
         });
-    });
+
+        res.json(roomsWithRates);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.createRoom = (req, res) => {
+exports.createRoom = async (req, res) => {
     const { room_number, capacity, type, floor, status, sharing_rates } = req.body;
     
-    db.query(
-        "INSERT INTO rooms (room_number, capacity, type, floor, status) VALUES (?, ?, ?, ?, ?)",
-        [room_number, capacity, type, floor || 'A', status || 'Available'],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            const roomId = result.insertId;
+    try {
+        const { data: inserted, error: rErr } = await supabase
+            .from('rooms')
+            .insert([{
+                room_number,
+                capacity: parseInt(capacity),
+                type,
+                floor: floor || 'A',
+                status: status || 'Available'
+            }])
+            .select();
 
-            // Save custom sharing rates if provided
-            if (Array.isArray(sharing_rates) && sharing_rates.length > 0) {
-                const ratesValues = sharing_rates.map(sr => [
-                    roomId, 
-                    parseInt(sr.sharing_type), 
-                    parseFloat(sr.monthly_rent)
-                ]);
+        if (rErr) return res.status(500).json({ error: rErr.message });
 
-                db.query(
-                    "INSERT INTO room_sharing_rates (room_id, sharing_type, monthly_rent) VALUES ?",
-                    [ratesValues],
-                    (err) => {
-                        if (err) console.error("Error saving room sharing rates:", err.message);
-                        res.status(201).json({ id: roomId, room_number, capacity, type, floor, status, sharing_rates });
-                    }
-                );
-            } else {
-                // Generate default rate matching capacity if none passed
-                const defaultRates = [];
-                for (let s = 1; s <= (capacity || 2); s++) {
-                    let baseRent = 6000;
-                    if (s === 1) baseRent = 8000;
-                    else if (s === 2) baseRent = 6000;
-                    else if (s === 3) baseRent = 5000;
-                    else if (s === 4) baseRent = 4500;
-                    else baseRent = 4000;
-                    defaultRates.push([roomId, s, baseRent]);
-                }
+        const roomId = inserted[0].id;
 
-                db.query(
-                    "INSERT INTO room_sharing_rates (room_id, sharing_type, monthly_rent) VALUES ?",
-                    [defaultRates],
-                    () => {
-                        res.status(201).json({ id: roomId, room_number, capacity, type, floor, status });
-                    }
-                );
+        // Save custom or default sharing rates
+        let ratesToInsert = [];
+        if (Array.isArray(sharing_rates) && sharing_rates.length > 0) {
+            ratesToInsert = sharing_rates.map(sr => ({
+                room_id: roomId,
+                sharing_type: parseInt(sr.sharing_type),
+                monthly_rent: parseFloat(sr.monthly_rent)
+            }));
+        } else {
+            const cap = parseInt(capacity) || 2;
+            for (let s = 1; s <= cap; s++) {
+                let baseRent = 6000;
+                if (s === 1) baseRent = 8000;
+                else if (s === 2) baseRent = 6000;
+                else if (s === 3) baseRent = 5000;
+                else if (s === 4) baseRent = 4500;
+                else baseRent = 4000;
+                ratesToInsert.push({ room_id: roomId, sharing_type: s, monthly_rent: baseRent });
             }
         }
-    );
+
+        if (ratesToInsert.length > 0) {
+            const { error: rateInsertErr } = await supabase
+                .from('room_sharing_rates')
+                .insert(ratesToInsert);
+            if (rateInsertErr) console.error("Error saving room sharing rates:", rateInsertErr.message);
+        }
+
+        res.status(201).json({ id: roomId, room_number, capacity, type, floor, status });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.updateRoom = (req, res) => {
+exports.updateRoom = async (req, res) => {
     const roomId = req.params.id;
     const { room_number, capacity, type, floor, status, sharing_rates } = req.body;
 
-    db.query(
-        "UPDATE rooms SET room_number=?, capacity=?, type=?, floor=?, status=? WHERE id=?",
-        [room_number, capacity, type, floor, status, roomId],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
+    try {
+        const { error: updateErr } = await supabase
+            .from('rooms')
+            .update({
+                room_number,
+                capacity: parseInt(capacity),
+                type,
+                floor,
+                status
+            })
+            .eq('id', roomId);
 
-            // Delete old sharing rates and insert updated ones if array provided
-            if (Array.isArray(sharing_rates)) {
-                db.query("DELETE FROM room_sharing_rates WHERE room_id = ?", [roomId], (err) => {
-                    if (err) console.error("Error clearing old sharing rates:", err.message);
+        if (updateErr) return res.status(500).json({ error: updateErr.message });
 
-                    if (sharing_rates.length > 0) {
-                        const ratesValues = sharing_rates.map(sr => [
-                            roomId, 
-                            parseInt(sr.sharing_type), 
-                            parseFloat(sr.monthly_rent)
-                        ]);
+        if (Array.isArray(sharing_rates)) {
+            // Delete old sharing rates
+            await supabase
+                .from('room_sharing_rates')
+                .delete()
+                .eq('room_id', roomId);
 
-                        db.query(
-                            "INSERT INTO room_sharing_rates (room_id, sharing_type, monthly_rent) VALUES ?",
-                            [ratesValues],
-                            (err) => {
-                                if (err) console.error("Error inserting updated sharing rates:", err.message);
-                                res.json({ message: "Room and sharing rates updated successfully" });
-                            }
-                        );
-                    } else {
-                        res.json({ message: "Room updated successfully" });
-                    }
-                });
-            } else {
-                res.json({ message: "Room updated successfully" });
+            if (sharing_rates.length > 0) {
+                const ratesToInsert = sharing_rates.map(sr => ({
+                    room_id: parseInt(roomId),
+                    sharing_type: parseInt(sr.sharing_type),
+                    monthly_rent: parseFloat(sr.monthly_rent)
+                }));
+
+                const { error: rateInsertErr } = await supabase
+                    .from('room_sharing_rates')
+                    .insert(ratesToInsert);
+                if (rateInsertErr) console.error("Error inserting updated sharing rates:", rateInsertErr.message);
             }
         }
-    );
+
+        res.json({ message: "Room and sharing rates updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.deleteRoom = (req, res) => {
-    db.query("DELETE FROM rooms WHERE id = ?", [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+exports.deleteRoom = async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('rooms')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) return res.status(500).json({ error: error.message });
         res.json({ message: "Room deleted successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };

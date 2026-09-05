@@ -1,69 +1,96 @@
-const db = require('../config/db');
+const supabase = require('../config/db');
 
-exports.getAllPayments = (req, res) => {
-    db.query(`
-        SELECT p.*, s.name as member_name 
-        FROM payments p
-        LEFT JOIN members s ON p.member_id = s.id
-        ORDER BY p.payment_date DESC
-    `, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
+exports.getAllPayments = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('payments')
+            .select('*, members(name)')
+            .order('payment_date', { ascending: false });
+
+        if (error) return res.status(500).json({ error: error.message });
+
+        const formatted = (data || []).map(p => {
+            const memberObj = p.members || {};
+            const { members, ...paymentFields } = p;
+            return {
+                ...paymentFields,
+                member_name: memberObj.name || null
+            };
+        });
+
+        res.json(formatted);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.createPayment = (req, res) => {
+exports.createPayment = async (req, res) => {
     const { member_id, amount, status, payment_date } = req.body;
-    db.query(
-        "INSERT INTO payments (member_id, amount, status, payment_date) VALUES (?, ?, ?, ?)",
-        [member_id, amount, status, payment_date],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            // Automatic 1-month reminder logic
-            if (status === 'Paid' && payment_date) {
-                const payDate = new Date(payment_date);
-                payDate.setMonth(payDate.getMonth() + 1);
-                const nextDueDate = payDate.toISOString().split('T')[0];
+    try {
+        const { data, error } = await supabase
+            .from('payments')
+            .insert([{ member_id, amount, status, payment_date }])
+            .select();
 
-                db.query("UPDATE members SET next_due_date = ? WHERE id = ?", [nextDueDate, member_id], (err2) => {
-                    if (err2) console.error("Failed to update next_due_date", err2);
-                    res.status(201).json({ id: result.insertId, member_id, amount, status });
-                });
-            } else {
-                res.status(201).json({ id: result.insertId, member_id, amount, status });
-            }
+        if (error) return res.status(500).json({ error: error.message });
+
+        const insertedId = data && data[0] ? data[0].id : null;
+
+        // Automatic 1-month reminder logic
+        if (status === 'Paid' && payment_date) {
+            const payDate = new Date(payment_date);
+            payDate.setMonth(payDate.getMonth() + 1);
+            const nextDueDate = payDate.toISOString().split('T')[0];
+
+            await supabase
+                .from('members')
+                .update({ next_due_date: nextDueDate })
+                .eq('id', member_id);
         }
-    );
+
+        res.status(201).json({ id: insertedId, member_id, amount, status });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.updatePayment = (req, res) => {
+exports.updatePayment = async (req, res) => {
     const { member_id, amount, status, payment_date } = req.body;
-    db.query(
-        "UPDATE payments SET member_id=?, amount=?, status=?, payment_date=? WHERE id=?",
-        [member_id, amount, status, payment_date, req.params.id],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
+    try {
+        const { error } = await supabase
+            .from('payments')
+            .update({ member_id, amount, status, payment_date })
+            .eq('id', req.params.id);
 
-            // If status changed to Paid, also update due date optionally (or just leave it for new creations)
-            if (status === 'Paid' && payment_date) {
-                const payDate = new Date(payment_date);
-                payDate.setMonth(payDate.getMonth() + 1);
-                const nextDueDate = payDate.toISOString().split('T')[0];
+        if (error) return res.status(500).json({ error: error.message });
 
-                db.query("UPDATE members SET next_due_date = ? WHERE id = ?", [nextDueDate, member_id], (err2) => {
-                    res.json({ message: "Payment updated successfully" });
-                });
-            } else {
-                res.json({ message: "Payment updated successfully" });
-            }
+        if (status === 'Paid' && payment_date) {
+            const payDate = new Date(payment_date);
+            payDate.setMonth(payDate.getMonth() + 1);
+            const nextDueDate = payDate.toISOString().split('T')[0];
+
+            await supabase
+                .from('members')
+                .update({ next_due_date: nextDueDate })
+                .eq('id', member_id);
         }
-    );
+
+        res.json({ message: "Payment updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.deletePayment = (req, res) => {
-    db.query("DELETE FROM payments WHERE id = ?", [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+exports.deletePayment = async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('payments')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) return res.status(500).json({ error: error.message });
         res.json({ message: "Payment deleted successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
