@@ -2,6 +2,10 @@ const supabase = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
+}
+
 const login = async (req, res) => {
     const { username, password } = req.body;
     
@@ -21,7 +25,7 @@ const login = async (req, res) => {
 
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.role }, 
-            process.env.JWT_SECRET || 'fallback_secret', 
+            process.env.JWT_SECRET, 
             { expiresIn: '1d' }
         );
 

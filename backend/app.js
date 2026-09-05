@@ -1,5 +1,10 @@
 require("dotenv").config();
 
+// Fail fast if critical environment variables are missing
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
+}
+
 const express = require("express");
 const cors = require("cors");
 

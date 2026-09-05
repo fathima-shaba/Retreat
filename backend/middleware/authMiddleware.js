@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
+}
+
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -8,7 +12,7 @@ const authMiddleware = (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
     } catch (err) {
