@@ -488,7 +488,7 @@ const Rooms = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="glass-panel section-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '2rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-panel section-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '2rem 2rem 4rem 2rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
             <button 
               onClick={() => setShowModal(false)}
               style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', color: 'var(--text-secondary)' }}
@@ -575,7 +575,8 @@ const Rooms = () => {
                 border: '1px solid var(--border-color)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
+                gap: '0.75rem',
+                position: 'relative'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
@@ -605,7 +606,7 @@ const Rooms = () => {
                     </div>
 
                     {roomData.sharing_rates.map((sr, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 36px', gap: '0.5rem', alignItems: 'center' }}>
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 36px', gap: '0.5rem', alignItems: 'center', position: 'relative', zIndex: roomData.sharing_rates.length - idx }}>
                         <CustomSelect
                           options={Array.from({ length: Math.max(6, roomData.capacity || 1) }, (_, i) => i + 1).map(n => ({
                             value: String(n),

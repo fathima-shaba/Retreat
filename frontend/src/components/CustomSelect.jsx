@@ -71,9 +71,9 @@ const CustomSelect = ({
 
   return (
     <div 
-      className={`custom-select-container ${className}`} 
+      className={`custom-select-container ${isOpen ? 'is-open' : ''} ${className}`} 
       ref={dropdownRef} 
-      style={{ position: 'relative', width: '100%', ...style }}
+      style={{ position: 'relative', width: '100%', zIndex: isOpen ? 1050 : 'auto', ...style }}
     >
       {/* Trigger Button */}
       <button
