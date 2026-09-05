@@ -1,10 +1,5 @@
 require("dotenv").config();
 
-// Fail fast if critical environment variables are missing
-if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
-    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
-}
-
 const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -23,13 +18,19 @@ const visitorRoutes = require("./routes/visitorRoutes");
 
 const app = express();
 
+// Log warning if critical environment variables are missing
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+    console.warn("⚠️ WARNING: JWT_SECRET environment variable is missing on server.");
+}
+
 // Rate limiting for authentication endpoints to prevent brute-force attacks
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // Limit each IP to 20 auth requests per windowMs
+    max: 30, // Limit each IP to 30 auth requests per 15 mins
     message: { message: "Too many login attempts from this IP, please try again after 15 minutes." },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false }
 });
 
 // Allowed Origins configuration for local dev and Vercel deployments
@@ -49,7 +50,7 @@ app.use(cors({
         if (isAllowed) {
             return callback(null, true);
         }
-        return callback(new Error("CORS policy violation: Access denied from unauthorized origin."));
+        return callback(null, false);
     },
     credentials: true
 }));

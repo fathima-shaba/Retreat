@@ -2,11 +2,11 @@ const supabase = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
-    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
-}
-
 const login = async (req, res) => {
+    if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+        return res.status(500).json({ message: "Server configuration error: JWT_SECRET environment variable is missing." });
+    }
+
     const { username, password } = req.body || {};
     
     if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {

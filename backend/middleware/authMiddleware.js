@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
-    throw new Error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
-}
-
 const authMiddleware = (req, res, next) => {
+    if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+        return res.status(500).json({ message: "Server configuration error: JWT_SECRET environment variable is missing." });
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: "No token provided, authorization denied" });
