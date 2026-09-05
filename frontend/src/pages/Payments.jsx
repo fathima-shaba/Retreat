@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import SearchInput from '../components/SearchInput';
+import SelectDropdown from '../components/SelectDropdown';
 import { Plus, X, Edit2, Trash2, Filter, Wallet, CheckCircle2, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
@@ -436,20 +437,14 @@ const Payments = () => {
               </div>
 
               <div className="form-group">
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Resident / Member *</label>
-                <select
-                  className="input-field"
+                <SelectDropdown
+                  label="Resident / Member"
+                  required
+                  placeholder="-- Select Resident --"
+                  options={members.map(m => ({ value: m.id, label: `${m.name} (${m.email})` }))}
                   value={memberId}
                   onChange={(e) => setMemberId(e.target.value)}
-                  required
-                >
-                  <option value="" disabled>-- Select Resident --</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.email})
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -467,17 +462,17 @@ const Payments = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Payment Mode</label>
-                  <select
-                    className="input-field"
+                  <SelectDropdown
+                    label="Payment Mode"
+                    options={[
+                      { value: 'Cash', label: 'Cash' },
+                      { value: 'UPI', label: 'UPI / GPay / PhonePe' },
+                      { value: 'Bank Transfer', label: 'Bank Transfer (NEFT/IMPS)' },
+                      { value: 'Card', label: 'Credit/Debit Card' }
+                    ]}
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                  >
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI / GPay / PhonePe</option>
-                    <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
-                    <option value="Card">Credit/Debit Card</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -494,17 +489,17 @@ const Payments = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>Status *</label>
-                  <select
-                    className="input-field"
+                  <SelectDropdown
+                    label="Status"
+                    required
+                    options={[
+                      { value: 'Paid', label: 'Paid' },
+                      { value: 'Pending', label: 'Pending' },
+                      { value: 'Overdue', label: 'Overdue' }
+                    ]}
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    required
-                  >
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Overdue">Overdue</option>
-                  </select>
+                  />
                 </div>
               </div>
 
