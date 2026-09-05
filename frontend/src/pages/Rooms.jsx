@@ -484,165 +484,212 @@ const Rooms = () => {
       {showModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1000, padding: '1rem'
         }}>
-          <div className="glass-panel section-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '2rem 2rem 4rem 2rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
-            <button 
-              onClick={() => setShowModal(false)}
-              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', color: 'var(--text-secondary)' }}
-            >
-              <X size={20} />
-            </button>
-            <h2 className="section-title">{editingId ? 'Edit Room Details' : 'Add New Room'}</h2>
-            
-            {validationError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#ef4444',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <AlertCircle size={16} flexShrink={0} />
-                <span>{validationError}</span>
-              </div>
-            )}
+          <div className="glass-panel section-card animate-fade-in" style={{
+            width: '100%', maxWidth: '540px', maxHeight: '85vh',
+            display: 'flex', flexDirection: 'column', position: 'relative',
+            padding: 0, overflow: 'hidden', borderRadius: '16px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)',
+              background: 'var(--card-bg)'
+            }}>
+              <h2 className="section-title" style={{ margin: 0, fontSize: '1.25rem' }}>
+                {editingId ? 'Edit Room Details' : 'Add New Room'}
+              </h2>
+              <button 
+                onClick={() => setShowModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Room Number / Name</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    placeholder="e.g. 101-A"
-                    value={roomData.room_number}
-                    onChange={(e) => { setValidationError(''); setRoomData({...roomData, room_number: e.target.value}); }}
-                    required 
-                  />
+            {/* Modal Body (Scrollable for mobile keyboards) */}
+            <div style={{
+              padding: '1.5rem', overflowY: 'auto', flex: 1,
+              display: 'flex', flexDirection: 'column', gap: '1.25rem'
+            }}>
+              {validationError && (
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                  <span>{validationError}</span>
                 </div>
+              )}
 
-                <div className="form-group">
-                  <label>Floor</label>
-                  <CustomSelect
-                    options={[
-                      { value: 'A', label: 'Floor A' },
-                      { value: 'B', label: 'Floor B' },
-                      { value: 'C', label: 'Floor C' }
-                    ]}
-                    value={roomData.floor}
-                    onChange={(e) => setRoomData({ ...roomData, floor: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Total Beds / Capacity</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    max="10"
-                    className="input-field" 
-                    value={roomData.capacity}
-                    onChange={(e) => handleCapacityChange(e.target.value)}
-                    required 
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Status</label>
-                  <CustomSelect
-                    options={['Available', 'Occupied', 'Maintenance']}
-                    value={roomData.status}
-                    onChange={(e) => setRoomData({ ...roomData, status: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Rent by Sharing Configuration Section */}
-              <div style={{ 
-                background: 'var(--input-bg)', 
-                padding: '1rem', 
-                borderRadius: '12px', 
-                border: '1px solid var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                position: 'relative'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)' }}>Rent by Sharing</h4>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Configure rent per sharing capacity</p>
+              <form id="room-modal-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
+                      Room Number / Name
+                    </label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="e.g. 101-A"
+                      value={roomData.room_number}
+                      onChange={(e) => { setValidationError(''); setRoomData({...roomData, room_number: e.target.value}); }}
+                      required 
+                    />
                   </div>
-                  <button 
-                    type="button" 
-                    onClick={handleAddSharingRate} 
-                    className="btn-primary" 
-                    style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
-                  >
-                    + Add Sharing Rate
-                  </button>
+
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
+                      Floor
+                    </label>
+                    <CustomSelect
+                      options={[
+                        { value: 'A', label: 'Floor A' },
+                        { value: 'B', label: 'Floor B' },
+                        { value: 'C', label: 'Floor C' }
+                      ]}
+                      value={roomData.floor}
+                      onChange={(e) => setRoomData({ ...roomData, floor: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                {roomData.sharing_rates.length === 0 ? (
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '0.5rem' }}>
-                    No sharing rates added. Click "+ Add Sharing Rate" to configure.
-                  </p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 36px', gap: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)', paddingBottom: '4px', borderBottom: '1px solid var(--border-color)' }}>
-                      <span>Sharing Type</span>
-                      <span>Monthly Rent (₹)</span>
-                      <span></span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
+                      Total Beds / Capacity
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      max="10"
+                      className="input-field" 
+                      value={roomData.capacity}
+                      onChange={(e) => handleCapacityChange(e.target.value)}
+                      required 
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
+                      Status
+                    </label>
+                    <CustomSelect
+                      options={['Available', 'Occupied', 'Maintenance']}
+                      value={roomData.status}
+                      onChange={(e) => setRoomData({ ...roomData, status: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Rent by Sharing Configuration Section */}
+                <div style={{ 
+                  background: 'var(--input-bg)', 
+                  padding: '1rem', 
+                  borderRadius: '12px', 
+                  border: '1px solid var(--border-color)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div>
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', margin: 0 }}>Rent by Sharing</h4>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>Configure rent per sharing capacity</p>
                     </div>
-
-                    {roomData.sharing_rates.map((sr, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 36px', gap: '0.5rem', alignItems: 'center', position: 'relative', zIndex: roomData.sharing_rates.length - idx }}>
-                        <CustomSelect
-                          options={Array.from({ length: Math.max(6, roomData.capacity || 1) }, (_, i) => i + 1).map(n => ({
-                            value: String(n),
-                            label: `${n} Share`
-                          }))}
-                          value={String(sr.sharing_type)}
-                          onChange={(e) => handleUpdateSharingRate(idx, 'sharing_type', parseInt(e.target.value))}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          step="100"
-                          className="input-field"
-                          placeholder="₹ Rent"
-                          value={sr.monthly_rent}
-                          onChange={(e) => handleUpdateSharingRate(idx, 'monthly_rent', e.target.value)}
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => handleRemoveSharingRate(idx)} 
-                          className="icon-btn" 
-                          title="Remove sharing option"
-                          style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', height: '38px', width: '36px' }}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    ))}
+                    <button 
+                      type="button" 
+                      onClick={handleAddSharingRate} 
+                      className="btn-primary" 
+                      style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', minHeight: 'auto' }}
+                    >
+                      + Add Sharing Rate
+                    </button>
                   </div>
-                )}
-              </div>
 
-              <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
+                  {roomData.sharing_rates.length === 0 ? (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '0.5rem', margin: 0 }}>
+                      No sharing rates added. Click "+ Add Sharing Rate" to configure.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 38px', gap: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)', paddingBottom: '4px', borderBottom: '1px solid var(--border-color)' }}>
+                        <span>Sharing Type</span>
+                        <span>Monthly Rent (₹)</span>
+                        <span></span>
+                      </div>
+
+                      {roomData.sharing_rates.map((sr, idx) => (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 38px', gap: '0.5rem', alignItems: 'center', position: 'relative', zIndex: roomData.sharing_rates.length - idx }}>
+                          <CustomSelect
+                            options={Array.from({ length: Math.max(6, roomData.capacity || 1) }, (_, i) => i + 1).map(n => ({
+                              value: String(n),
+                              label: `${n} Share`
+                            }))}
+                            value={String(sr.sharing_type)}
+                            onChange={(e) => handleUpdateSharingRate(idx, 'sharing_type', parseInt(e.target.value))}
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            className="input-field"
+                            placeholder="₹ Rent"
+                            value={sr.monthly_rent}
+                            onChange={(e) => handleUpdateSharingRate(idx, 'monthly_rent', e.target.value)}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveSharingRate(idx)} 
+                            className="icon-btn" 
+                            title="Remove sharing option"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', height: '38px', width: '38px', borderRadius: '8px' }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)',
+              background: 'var(--card-bg)', display: 'flex', justifyContent: 'flex-end',
+              gap: '0.75rem'
+            }}>
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)} 
+                className="btn-secondary"
+                style={{ padding: '0.65rem 1.25rem' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                form="room-modal-form" 
+                className="btn-primary"
+                style={{ padding: '0.65rem 1.5rem' }}
+              >
                 {editingId ? 'Update Room Configuration' : 'Save New Room'}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

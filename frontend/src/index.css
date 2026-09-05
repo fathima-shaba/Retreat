@@ -175,13 +175,37 @@ input {
 
 .input-field {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.95rem;
   transition: all 0.2s ease;
+}
+
+.input-wrapper .input-field {
+  padding-left: 2.75rem;
+}
+
+.btn-secondary {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-secondary:hover {
+  background: var(--border-color);
 }
 
 .input-field:focus {
