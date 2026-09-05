@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Users, BedDouble, Wallet, Megaphone, AlertCircle } from 'lucide-react';
+import { Users, BedDouble, Wallet } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 
 const DonutChart = ({ occupied, available, maintenance }) => {
@@ -17,10 +17,6 @@ const DonutChart = ({ occupied, available, maintenance }) => {
   const strokeDasharrayOccupied = `${(occupiedPct / 100) * circumference} ${circumference}`;
   const strokeDasharrayAvailable = `${(availablePct / 100) * circumference} ${circumference}`;
   const strokeDasharrayMaintenance = `${(maintenancePct / 100) * circumference} ${circumference}`;
-
-  const offsetOccupied = 25; 
-  const offsetAvailable = offsetOccupied - (occupiedPct / 100) * circumference;
-  const offsetMaintenance = offsetAvailable - (availablePct / 100) * circumference;
 
   return (
     <div style={{ position: 'relative', width: '150px', height: '150px', margin: '0' }}>
@@ -52,11 +48,14 @@ const Dashboard = () => {
     totalRooms: 0,
     occupiedRooms: 0,
     vacantRooms: 0,
+    maintenanceRooms: 0,
     totalPayments: 0,
-    pendingPayments: 0
+    pendingPayments: 0,
+    pendingCount: 0,
+    roomStatus: [],
+    recentCheckins: [],
+    recentExpenses: []
   });
-  
-  const [showToast, setShowToast] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -76,50 +75,16 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  // Use real backend data for charts if available, else fallback
-  const occupiedBeds = stats.occupiedRooms || 392;
-  const availableBeds = stats.vacantRooms || 36;
-  const maintenanceBeds = 4; // Mock maintenance
+  const occupiedBeds = stats.occupiedRooms || 0;
+  const availableBeds = stats.vacantRooms || 0;
+  const maintenanceBeds = stats.maintenanceRooms || 0;
+  const totalBeds = occupiedBeds + availableBeds;
+  const occupancyPercent = totalBeds > 0 ? ((occupiedBeds / totalBeds) * 100).toFixed(1) : '0';
+  const availabilityPercent = totalBeds > 0 ? ((availableBeds / totalBeds) * 100).toFixed(1) : '0';
 
-  // Mock Data arrays
-  const roomStatus = [
-    { block: 'Floor A (A1-A9)', percent: 89, occupied: 8, total: 9 },
-    { block: 'Floor B (B1-B9)', percent: 78, occupied: 7, total: 9 },
-    { block: 'Floor C (C1-C8)', percent: 63, occupied: 5, total: 8 }
-  ];
-
-  const recentCheckins = [
-    { name: 'Akhil N', room: 'Room A1', time: '10 May, 10:30 AM', initials: 'AN' },
-    { name: 'Fahad K', room: 'Room B2', time: '09 May, 09:45 AM', initials: 'FK' },
-    { name: 'Rafid M', room: 'Room C3', time: '09 May, 06:15 PM', initials: 'RM' },
-    { name: 'Nihal V', room: 'Room A4', time: '08 May, 04:20 PM', initials: 'NV' }
-  ];
-
-  const leaveRequests = [
-    { name: 'Sreejith P', room: 'Room B2', date: '12 May - 15 May', status: 'Pending', initials: 'SP' },
-    { name: 'Arjun R', room: 'Room A3', date: '11 May - 13 May', status: 'Pending', initials: 'AR' },
-    { name: 'Jaseem K', room: 'Room C1', date: '10 May - 12 May', status: 'Approved', initials: 'JK' },
-    { name: 'Alan K', room: 'Room B5', date: '09 May - 10 May', status: 'Rejected', initials: 'AK' }
-  ];
-
-  const recentComplaints = [
-    { issue: 'Wi-Fi not working', room: 'Room A1', status: 'Open' },
-    { issue: 'Water supply issue', room: 'Room B2', status: 'In Progress' },
-    { issue: 'Light not working', room: 'Room C3', status: 'Resolved' },
-    { issue: 'Fan problem', room: 'Room A4', status: 'Open' }
-  ];
-
-  const getBadgeClass = (status) => {
-    switch (status) {
-      case 'Pending': return 'badge-pending';
-      case 'Approved': return 'badge-approved';
-      case 'Rejected': return 'badge-rejected';
-      case 'Open': return 'badge-open';
-      case 'In Progress': return 'badge-inprogress';
-      case 'Resolved': return 'badge-resolved';
-      default: return '';
-    }
-  };
+  const roomStatus = Array.isArray(stats.roomStatus) && stats.roomStatus.length > 0 ? stats.roomStatus : [];
+  const recentCheckins = Array.isArray(stats.recentCheckins) ? stats.recentCheckins : [];
+  const recentExpenses = Array.isArray(stats.recentExpenses) ? stats.recentExpenses : [];
 
   return (
     <div className="dashboard-layout animate-fade-in">
@@ -146,9 +111,9 @@ const Dashboard = () => {
                   <span style={{ fontSize: '0.875rem' }}>Total Residents</span>
                 </div>
               </div>
-              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>{stats.totalStudents || 428}</div>
+              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>{stats.totalStudents}</div>
               <div className="stat-footer" style={{ marginTop: '0.5rem' }}>
-                <span className="trend-up">+12</span> <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>this month</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Active Registered Residents</span>
               </div>
             </div>
             
@@ -163,7 +128,7 @@ const Dashboard = () => {
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>{occupiedBeds}</div>
               <div className="stat-footer" style={{ marginTop: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{((occupiedBeds/(occupiedBeds+availableBeds))*100).toFixed(1)}% Occupancy</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{occupancyPercent}% Occupancy</span>
               </div>
             </div>
             
@@ -178,7 +143,7 @@ const Dashboard = () => {
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>{availableBeds}</div>
               <div className="stat-footer" style={{ marginTop: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{((availableBeds/(occupiedBeds+availableBeds))*100).toFixed(1)}% Available</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{availabilityPercent}% Available</span>
               </div>
             </div>
 
@@ -191,9 +156,9 @@ const Dashboard = () => {
                   <span style={{ fontSize: '0.875rem' }}>Pending Fees</span>
                 </div>
               </div>
-              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>₹{stats.pendingPayments || '1,24,500'}</div>
+              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem' }}>₹{Number(stats.pendingPayments || 0).toLocaleString('en-IN')}</div>
               <div className="stat-footer" style={{ marginTop: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>21 Pending Payments</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{stats.pendingCount || 0} Pending Payments</span>
               </div>
             </div>
           </div>
@@ -203,21 +168,20 @@ const Dashboard = () => {
             <div className="glass-panel section-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ fontSize: '1rem', fontWeight: '600' }}>Occupancy Overview</h2>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>This Month ▾</span>
               </div>
               <div className="occupancy-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                 <DonutChart occupied={occupiedBeds} available={availableBeds} maintenance={maintenanceBeds} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Occupied</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Occupied Beds</div>
                     <span style={{ fontWeight: '500' }}>{occupiedBeds}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span> Available</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span> Available Beds</div>
                     <span style={{ fontWeight: '500' }}>{availableBeds}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> Maintenance</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> Maintenance Rooms</div>
                     <span style={{ fontWeight: '500' }}>{maintenanceBeds}</span>
                   </div>
                 </div>
@@ -226,21 +190,22 @@ const Dashboard = () => {
 
             <div className="glass-panel section-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1rem', fontWeight: '600' }}>Room Status</h2>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>All Blocks ▾</span>
+                <h2 style={{ fontSize: '1rem', fontWeight: '600' }}>Room Status by Floor</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {roomStatus.map((block) => (
+                {roomStatus.length > 0 ? roomStatus.map((block) => (
                   <div key={block.block}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                       <span style={{ fontWeight: '500' }}>{block.block}</span>
-                      <span><span style={{ fontWeight: '600' }}>{block.percent}%</span> <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>({block.occupied}/{block.total})</span></span>
+                      <span><span style={{ fontWeight: '600' }}>{block.percent}%</span> <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>({block.occupied}/{block.total} Occupied)</span></span>
                     </div>
                     <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${block.percent}%`, height: '100%', background: '#10b981', borderRadius: '3px' }}></div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>No rooms configured.</div>
+                )}
               </div>
             </div>
           </div>
@@ -250,10 +215,10 @@ const Dashboard = () => {
             <div className="glass-panel section-card">
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                 <h2 style={{ fontSize: '0.875rem', fontWeight: '600' }}>Recent Check-ins</h2>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>View all</span>
+                <span onClick={() => navigate('/members')} style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', cursor: 'pointer' }}>View all &rarr;</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {recentCheckins.map((item, i) => (
+                {recentCheckins.length > 0 ? recentCheckins.map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div className="avatar-mini">{item.initials}</div>
@@ -266,30 +231,20 @@ const Dashboard = () => {
                       {item.time}
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>No recent check-ins.</div>
+                )}
               </div>
             </div>
 
             <div className="glass-panel section-card">
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                <h2 style={{ fontSize: '0.875rem', fontWeight: '600' }}>Leave Requests</h2>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>View all</span>
+                <h2 style={{ fontSize: '0.875rem', fontWeight: '600' }}>Total Revenue (Paid)</h2>
+                <span onClick={() => navigate('/payments')} style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', cursor: 'pointer' }}>View all &rarr;</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {leaveRequests.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div className="avatar-mini">{item.initials}</div>
-                      <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '500' }}>{item.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.room} • {item.date}</div>
-                      </div>
-                    </div>
-                    <div>
-                      <span className={`badge ${getBadgeClass(item.status)}`}>{item.status}</span>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'center', height: '100%', minHeight: '120px' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Total Fee Revenue Collected</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>₹{Number(stats.totalPayments || 0).toLocaleString('en-IN')}</div>
               </div>
             </div>
 
@@ -299,12 +254,7 @@ const Dashboard = () => {
                 <span onClick={() => navigate('/expenses')} style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', cursor: 'pointer' }}>View all &rarr;</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {[
-                  { category: 'Utilities', item: 'Electricity & Water Bill', amount: '₹14,500', date: 'Yesterday' },
-                  { category: 'Maintenance', item: 'Plumbing & Pipe Repair', amount: '₹3,200', date: '10 May' },
-                  { category: 'Groceries', item: 'Mess Food & Provisions', amount: '₹22,800', date: '08 May' },
-                  { category: 'Supplies', item: 'Cleaning & Sanitation Supplies', amount: '₹4,100', date: '05 May' }
-                ].map((item, i) => (
+                {recentExpenses.length > 0 ? recentExpenses.map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ width: '2rem', height: '2rem', borderRadius: '8px', background: 'rgba(16,185,129,0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -319,7 +269,9 @@ const Dashboard = () => {
                       <span style={{ fontWeight: '600', fontSize: '0.85rem', color: '#ef4444' }}>{item.amount}</span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>No recent expenses.</div>
+                )}
               </div>
             </div>
           </div>
