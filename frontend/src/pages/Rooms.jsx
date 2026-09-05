@@ -17,14 +17,11 @@ const Rooms = () => {
   
   const [roomData, setRoomData] = useState({
     room_number: '',
-    capacity: 2,
-    type: '2 Share',
+    capacity: 1,
+    type: '1 Share',
     floor: 'A',
     status: 'Available',
-    sharing_rates: [
-      { sharing_type: 1, monthly_rent: 8000 },
-      { sharing_type: 2, monthly_rent: 6000 }
-    ]
+    sharing_rates: []
   });
 
   const [validationError, setValidationError] = useState('');
@@ -47,14 +44,11 @@ const Rooms = () => {
     setValidationError('');
     setRoomData({ 
       room_number: '', 
-      capacity: 2, 
-      type: '2 Share', 
+      capacity: 1, 
+      type: '1 Share', 
       floor: 'A', 
       status: 'Available',
-      sharing_rates: [
-        { sharing_type: 1, monthly_rent: 8000 },
-        { sharing_type: 2, monthly_rent: 6000 }
-      ]
+      sharing_rates: []
     });
     setShowModal(true);
   };
@@ -63,18 +57,14 @@ const Rooms = () => {
     setEditingId(room.id);
     setValidationError('');
     
-    // Default rates if room doesn't have any configured yet
     const existingRates = room.sharing_rates && room.sharing_rates.length > 0 
       ? room.sharing_rates.map(sr => ({ sharing_type: Number(sr.sharing_type), monthly_rent: Number(sr.monthly_rent) }))
-      : [
-          { sharing_type: 1, monthly_rent: 8000 },
-          { sharing_type: 2, monthly_rent: 6000 }
-        ];
+      : [];
 
     setRoomData({ 
       room_number: room.room_number, 
-      capacity: room.capacity || 2,
-      type: room.type || `${room.capacity || 2} Share`, 
+      capacity: room.capacity || 1,
+      type: room.type || `${room.capacity || 1} Share`, 
       floor: room.floor || 'A',
       status: room.status || 'Available',
       sharing_rates: existingRates
@@ -102,18 +92,6 @@ const Rooms = () => {
     const maxAllowed = Math.max(6, capInt);
     const updatedRates = roomData.sharing_rates.filter(sr => sr.sharing_type <= maxAllowed);
     
-    if (updatedRates.length === 0) {
-      let defaultRent = 6000;
-      if (capInt === 1) defaultRent = 8000;
-      else if (capInt === 2) defaultRent = 6000;
-      else if (capInt === 3) defaultRent = 5000;
-      else if (capInt === 4) defaultRent = 4500;
-      else if (capInt === 5) defaultRent = 4000;
-      else if (capInt === 6) defaultRent = 3500;
-
-      updatedRates.push({ sharing_type: Math.min(capInt, 6), monthly_rent: defaultRent });
-    }
-
     setRoomData({
       ...roomData,
       capacity: capInt,
@@ -136,17 +114,9 @@ const Rooms = () => {
     }
 
     setValidationError('');
-    let defaultRent = 6000;
-    if (nextType === 1) defaultRent = 8000;
-    else if (nextType === 2) defaultRent = 6000;
-    else if (nextType === 3) defaultRent = 5000;
-    else if (nextType === 4) defaultRent = 4500;
-    else if (nextType === 5) defaultRent = 4000;
-    else if (nextType === 6) defaultRent = 3500;
-
     setRoomData({
       ...roomData,
-      sharing_rates: [...roomData.sharing_rates, { sharing_type: nextType, monthly_rent: defaultRent }]
+      sharing_rates: [...roomData.sharing_rates, { sharing_type: nextType, monthly_rent: '' }]
     });
   };
 
