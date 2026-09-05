@@ -116,14 +116,18 @@ const SelectDropdown = ({
   };
 
   return (
-    <div className={`relative w-full ${className}`} ref={dropdownRef} style={{ width: '100%', ...style }}>
+    <div 
+      className={`relative w-full ${className}`} 
+      ref={dropdownRef} 
+      style={{ width: '100%', position: 'relative', ...style }}
+    >
       {label && (
         <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
-      {/* Dropdown Trigger Button - Perfectly matches standard form text input height & dimensions */}
+      {/* Dropdown Trigger Button - Standardized to match text input dimensions */}
       <button
         type="button"
         id={id}
@@ -132,8 +136,8 @@ const SelectDropdown = ({
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        style={{ minHeight: '44px' }}
-        className={`w-full box-border flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
+        style={{ minHeight: '44px', width: '100%', boxSizing: 'border-box' }}
+        className={`w-full box-border flex items-center justify-between px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-gray-400'
             : isOpen
@@ -165,14 +169,23 @@ const SelectDropdown = ({
         />
       </button>
 
-      {/* Floating Options Menu Overlay */}
+      {/* Floating Options Menu Overlay - Absolute positioning & high z-index */}
       {isOpen && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 mt-1.5 py-1 z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/80 rounded-lg shadow-xl max-h-60 overflow-y-auto scrollbar-thin animate-in fade-in slide-in-from-top-1 duration-150"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            width: '100%',
+            zIndex: 99999,
+            boxSizing: 'border-box'
+          }}
+          className="absolute left-0 right-0 top-full mt-1 w-full z-[99999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg overflow-y-auto max-h-60 py-1 text-gray-900 dark:text-gray-100"
         >
           {normalizedOptions.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-center text-gray-500 dark:text-gray-400">
+            <div className="px-3 py-2 text-xs text-center text-gray-500 dark:text-gray-400">
               No options available
             </div>
           ) : (
@@ -188,15 +201,15 @@ const SelectDropdown = ({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(opt.value)}
                   onMouseEnter={() => setFocusedIndex(index)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer select-none transition-colors duration-150 ${
+                  className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer select-none transition-colors duration-150 ${
                     isSelected
                       ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold'
                       : isFocused
-                      ? 'bg-emerald-50/70 dark:bg-gray-700/60 text-emerald-600 dark:text-emerald-400'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-emerald-50/70 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                      : 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 truncate">
+                  <div className="flex items-center gap-2 truncate">
                     {dotColor && (
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"

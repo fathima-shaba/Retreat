@@ -505,7 +505,7 @@ const Rooms = () => {
               )}
 
               <form id="room-modal-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', position: 'relative', zIndex: 30 }}>
                   <div className="form-group">
                     <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
                       Room Number / Name
@@ -520,7 +520,7 @@ const Rooms = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group" style={{ position: 'relative', zIndex: 30 }}>
                     <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
                       Floor
                     </label>
@@ -536,7 +536,7 @@ const Rooms = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', position: 'relative', zIndex: 20 }}>
                   <div className="form-group">
                     <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
                       Total Beds / Capacity
@@ -552,7 +552,7 @@ const Rooms = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group" style={{ position: 'relative', zIndex: 20 }}>
                     <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: '500' }}>
                       Status
                     </label>
