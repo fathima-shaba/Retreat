@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Building } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { User, Lock, ArrowRight } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -30,7 +32,9 @@ const Login = () => {
         setError(data.message || 'Login failed');
       }
     } catch (err) {
-      setError('Cannot connect to server. Please ensure backend is running.');
+      setError('Cannot connect to server. Please check backend.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,8 +45,8 @@ const Login = () => {
       
       <div className="glass-panel login-card animate-fade-in">
         <div className="login-header">
-          <div className="sidebar-logo" style={{ margin: '0 auto 1.5rem', width: '3rem', height: '3rem' }}>
-            <Building color="white" size={24} />
+          <div className="sidebar-logo" style={{ margin: '0 auto 1.5rem', width: '3.25rem', height: '3.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Logo size={28} color="white" />
           </div>
           <h1>Welcome Back</h1>
           <p>Enter your credentials to access the portal</p>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import MobileBottomNav from './MobileBottomNav';
+import Logo from './Logo';
 import { 
   LayoutDashboard, 
   Users, 
@@ -8,18 +9,18 @@ import {
   Clock,
   CreditCard,
   Receipt,
-  CalendarDays,
-  Briefcase,
   FileText,
-  Settings, 
+  Settings,
   LogOut,
-  Building,
-  X
+  X,
+  MessageSquare,
+  UserCheck,
+  Megaphone
 } from 'lucide-react';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleToggle = () => setIsOpen(prev => !prev);
@@ -38,11 +39,12 @@ const Sidebar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Residents', path: '/members', icon: <Users size={20} /> },
     { name: 'Rooms & Beds', path: '/rooms', icon: <BedDouble size={20} /> },
-    { name: 'Attendance', path: '/attendance', icon: <Clock size={20} /> },
+    { name: 'Attendance', path: '/attendance', icon: <UserCheck size={20} /> },
     { name: 'Fees & Payments', path: '/payments', icon: <CreditCard size={20} /> },
     { name: 'Expense Tracker', path: '/expenses', icon: <Receipt size={20} /> },
-    { name: 'Leave Management', path: '/leave', icon: <CalendarDays size={20} /> },
-    { name: 'Staff & Warden', path: '/staff', icon: <Briefcase size={20} /> },
+    { name: 'Leave Management', path: '/leave', icon: <Clock size={20} /> },
+    { name: 'Complaints', path: '/complaints', icon: <MessageSquare size={20} /> },
+    { name: 'Announcements', path: '/announcements', icon: <Megaphone size={20} /> },
     { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];
@@ -69,7 +71,7 @@ const Sidebar = () => {
         <div className="sidebar-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div className="sidebar-logo">
-              <Building color="white" size={18} />
+              <Logo size={20} color="white" />
             </div>
             <span className="sidebar-title">Hostel <span style={{ color: 'var(--accent-primary)' }}>FT</span></span>
           </div>
