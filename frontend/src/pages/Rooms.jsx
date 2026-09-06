@@ -46,7 +46,7 @@ const Rooms = () => {
       type: '1 Share', 
       floor: 'A', 
       status: 'Available',
-      sharing_rates: []
+      sharing_rates: [{ sharing_type: 1, monthly_rent: '' }]
     });
     setShowModal(true);
   };
@@ -83,38 +83,71 @@ const Rooms = () => {
     }
   };
 
-  // Synchronize bed capacity changes with type and rates validation
-  const handleCapacityChange = (newCap) => {
-    const capInt = Math.min(10, Math.max(1, parseInt(newCap) || 1));
-    const maxAllowed = Math.max(6, capInt);
-    const updatedRates = roomData.sharing_rates.filter(sr => sr.sharing_type <= maxAllowed);
+  // Synchronize bed capacity changes smoothly without forcing immediate 1 on backspace
+  const handleCapacityChange = (val) => {
+    setValidationError('');
+    if (val === '' || val === null || val === undefined) {
+      setRoomData(prev => ({
+        ...prev,
+        capacity: ''
+      }));
+      return;
+    }
+
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed)) {
+      setRoomData(prev => ({
+        ...prev,
+        capacity: val
+      }));
+      return;
+    }
+
+    const capInt = Math.min(10, Math.max(1, parsed));
+    const maxAllowed = Math.max(10, capInt);
+    const updatedRates = (roomData.sharing_rates || []).filter(sr => Number(sr.sharing_type) <= maxAllowed);
     
-    setRoomData({
-      ...roomData,
+    // Ensure at least one default sharing rate matching capInt if rates list became empty
+    const finalRates = updatedRates.length > 0 ? updatedRates : [{ sharing_type: capInt, monthly_rent: '' }];
+
+    setRoomData(prev => ({
+      ...prev,
       capacity: capInt,
       type: `${capInt} Share`,
-      sharing_rates: updatedRates
-    });
+      sharing_rates: finalRates
+    }));
+  };
+
+  const handleCapacityBlur = () => {
+    let num = parseInt(roomData.capacity, 10);
+    if (isNaN(num) || num < 1) num = 1;
+    if (num > 10) num = 10;
+    handleCapacityChange(num);
   };
 
   const handleAddSharingRate = () => {
-    const maxAllowed = Math.max(6, roomData.capacity || 1);
-    const usedTypes = new Set(roomData.sharing_rates.map(sr => sr.sharing_type));
-    let nextType = 1;
-    while (usedTypes.has(nextType) && nextType <= maxAllowed) {
-      nextType++;
+    const capInt = parseInt(roomData.capacity, 10) || 1;
+    const maxAllowed = Math.max(10, capInt);
+    const usedTypes = new Set((roomData.sharing_rates || []).map(sr => Number(sr.sharing_type)));
+    
+    let nextType = capInt;
+    if (usedTypes.has(nextType)) {
+      nextType = 1;
+      while (usedTypes.has(nextType) && nextType <= maxAllowed) {
+        nextType++;
+      }
     }
 
-    if (nextType > maxAllowed) {
-      setValidationError(`Cannot add more sharing rates. All ${maxAllowed} sharing options configured.`);
+    if (nextType > maxAllowed || usedTypes.size >= maxAllowed) {
+      setValidationError(`All ${maxAllowed} sharing options are already configured.`);
       return;
     }
 
     setValidationError('');
-    setRoomData({
-      ...roomData,
-      sharing_rates: [...roomData.sharing_rates, { sharing_type: nextType, monthly_rent: '' }]
-    });
+    setRoomData(prev => ({
+      ...prev,
+      sharing_rates: [...(prev.sharing_rates || []), { sharing_type: nextType, monthly_rent: '' }]
+    }));
   };
 
   const handleUpdateSharingRate = (index, field, value) => {
@@ -132,13 +165,14 @@ const Rooms = () => {
 
   // Form Validation
   const validateForm = () => {
-    if (!roomData.room_number.trim()) {
-      setValidationError('Room Number is required.');
+    if (!roomData.room_number || !roomData.room_number.trim()) {
+      setValidationError('Room Number / Name is required.');
       return false;
     }
 
-    if (roomData.capacity < 1) {
-      setValidationError('Room bed capacity must be at least 1.');
+    const capNum = parseInt(roomData.capacity, 10);
+    if (isNaN(capNum) || capNum < 1 || capNum > 10) {
+      setValidationError('Total beds / capacity must be a valid number between 1 and 10.');
       return false;
     }
 
@@ -147,24 +181,20 @@ const Rooms = () => {
       return false;
     }
 
-    const maxAllowed = Math.max(6, roomData.capacity);
+    const maxAllowed = Math.max(10, capNum);
     const seenTypes = new Set();
-    for (const sr of roomData.sharing_rates) {
-      const typeNum = parseInt(sr.sharing_type);
+    for (let i = 0; i < roomData.sharing_rates.length; i++) {
+      const sr = roomData.sharing_rates[i];
+      const typeNum = parseInt(sr.sharing_type, 10);
       const rentNum = parseFloat(sr.monthly_rent);
 
       if (isNaN(typeNum) || typeNum < 1) {
-        setValidationError('Sharing capacity must be a positive number.');
+        setValidationError(`Sharing option #${i + 1} has an invalid capacity.`);
         return false;
       }
 
-      if (typeNum > maxAllowed) {
-        setValidationError(`Sharing capacity (${typeNum} Share) cannot exceed maximum allowed (${maxAllowed} shares).`);
-        return false;
-      }
-
-      if (isNaN(rentNum) || rentNum < 0) {
-        setValidationError('Monthly rent must be a valid non-negative amount.');
+      if (sr.monthly_rent === '' || isNaN(rentNum) || rentNum < 0) {
+        setValidationError(`Please enter a valid monthly rent amount for ${typeNum} Share.`);
         return false;
       }
 
@@ -195,8 +225,8 @@ const Rooms = () => {
         },
         body: JSON.stringify({
           room_number: roomData.room_number.trim(),
-          capacity: parseInt(roomData.capacity),
-          type: roomData.type,
+          capacity: parseInt(roomData.capacity, 10) || 1,
+          type: roomData.type || `${parseInt(roomData.capacity, 10) || 1} Share`,
           floor: roomData.floor,
           status: roomData.status,
           sharing_rates: roomData.sharing_rates.map(sr => ({
@@ -544,6 +574,7 @@ const Rooms = () => {
                       className="input-field" 
                       value={roomData.capacity}
                       onChange={(e) => handleCapacityChange(e.target.value)}
+                      onBlur={handleCapacityBlur}
                       required 
                     />
                   </div>
@@ -600,12 +631,12 @@ const Rooms = () => {
                       {roomData.sharing_rates.map((sr, idx) => (
                         <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 38px', gap: '0.5rem', alignItems: 'center', position: 'relative', zIndex: roomData.sharing_rates.length - idx }}>
                           <CustomSelect
-                            options={Array.from({ length: Math.max(6, roomData.capacity || 1) }, (_, i) => i + 1).map(n => ({
+                            options={Array.from({ length: Math.max(10, parseInt(roomData.capacity) || 1) }, (_, i) => i + 1).map(n => ({
                               value: String(n),
                               label: `${n} Share`
                             }))}
                             value={String(sr.sharing_type)}
-                            onChange={(e) => handleUpdateSharingRate(idx, 'sharing_type', parseInt(e.target.value))}
+                            onChange={(e) => handleUpdateSharingRate(idx, 'sharing_type', parseInt(e.target.value, 10))}
                           />
                           <input
                             type="number"
