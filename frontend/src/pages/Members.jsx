@@ -233,10 +233,44 @@ const Members = () => {
       setValidationError('Email address is required.');
       return false;
     }
-    if (parseFloat(studentData.rent_fee) < 0 || parseFloat(studentData.admission_fee) < 0 || parseFloat(studentData.deposit_fee) < 0) {
-      setValidationError('Fee amounts cannot be negative.');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(studentData.email.trim())) {
+      setValidationError('Please enter a valid email address.');
       return false;
     }
+    if (studentData.phone && studentData.phone.trim()) {
+      const cleanPhone = studentData.phone.replace(/\D/g, '');
+      if (cleanPhone.length !== 10) {
+        setValidationError('Resident phone number must be 10 digits.');
+        return false;
+      }
+    }
+    if (studentData.guardian_phone && studentData.guardian_phone.trim()) {
+      const cleanGPhone = studentData.guardian_phone.replace(/\D/g, '');
+      if (cleanGPhone.length !== 10) {
+        setValidationError('Guardian phone number must be 10 digits.');
+        return false;
+      }
+    }
+    const rentFee = parseFloat(studentData.rent_fee);
+    const admFee = parseFloat(studentData.admission_fee);
+    const depFee = parseFloat(studentData.deposit_fee);
+    if (isNaN(rentFee) || rentFee < 0 || isNaN(admFee) || admFee < 0 || isNaN(depFee) || depFee < 0) {
+      setValidationError('Fee amounts must be valid non-negative numbers.');
+      return false;
+    }
+
+    if (studentData.room_id) {
+      const selectedRoom = rooms.find(r => String(r.id) === String(studentData.room_id));
+      if (selectedRoom) {
+        const occupants = members.filter(m => String(m.room_id) === String(selectedRoom.id) && m.id !== editingId).length;
+        if (occupants >= (selectedRoom.capacity || 2)) {
+          setValidationError(`Room ${selectedRoom.room_number} is fully occupied (${occupants}/${selectedRoom.capacity} beds used). Please select another available room.`);
+          return false;
+        }
+      }
+    }
+
     setValidationError('');
     return true;
   };
@@ -558,8 +592,8 @@ const Members = () => {
               </div>
 
               {/* Section 3: Occupation / Resident Type */}
-              <div className="form-grid-2" style={{ position: 'relative', zIndex: 30 }}>
-                <div className="form-group" style={{ position: 'relative', zIndex: 30 }}>
+              <div className="form-grid-2">
+                <div className="form-group">
                   <label>Resident Type</label>
                   <CustomSelect 
                     options={[
@@ -578,8 +612,8 @@ const Members = () => {
               </div>
 
               {/* Section 4: Room Assignment & Sharing Arrangement */}
-              <div className="form-grid-2" style={{ position: 'relative', zIndex: 20 }}>
-                <div className="form-group" style={{ position: 'relative', zIndex: 20 }}>
+              <div className="form-grid-2">
+                <div className="form-group">
                   <label>Assign Room</label>
                   <CustomSelect 
                     options={[
@@ -600,7 +634,7 @@ const Members = () => {
                   />
                 </div>
 
-                <div className="form-group" style={{ position: 'relative', zIndex: 20 }}>
+                <div className="form-group">
                   <label>Sharing Arrangement</label>
                   {studentData.room_id && currentRoomRates.length > 0 ? (
                     <CustomSelect 

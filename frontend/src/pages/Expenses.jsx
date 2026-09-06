@@ -159,6 +159,14 @@ const Expenses = () => {
       setValidationError('Please select an expense category.');
       return false;
     }
+    if (!expenseData.description || !expenseData.description.trim()) {
+      setValidationError('Please enter a description for the expense.');
+      return false;
+    }
+    if (!expenseData.expense_date) {
+      setValidationError('Please select a valid expense date.');
+      return false;
+    }
     setValidationError('');
     return true;
   };

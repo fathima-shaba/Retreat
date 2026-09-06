@@ -110,6 +110,14 @@ const Payments = () => {
       setSubmitError("Please enter a valid positive amount.");
       return;
     }
+    if (!paymentDate) {
+      setSubmitError("Please select a valid payment date.");
+      return;
+    }
+    if (!paymentMode) {
+      setSubmitError("Please select a payment mode.");
+      return;
+    }
 
     const payload = {
       member_id: parseInt(memberId),

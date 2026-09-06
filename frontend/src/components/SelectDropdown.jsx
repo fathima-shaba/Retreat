@@ -117,9 +117,14 @@ const SelectDropdown = ({
 
   return (
     <div 
-      className={`select-dropdown-container relative w-full ${className}`} 
+      className={`select-dropdown-container relative w-full ${isOpen ? 'is-open' : ''} ${className}`} 
       ref={dropdownRef} 
-      style={{ width: '100%', position: 'relative', ...style }}
+      style={{ 
+        width: '100%', 
+        position: 'relative', 
+        zIndex: isOpen ? 9999 : 'auto', 
+        ...style 
+      }}
     >
       {label && (
         <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
@@ -193,15 +198,15 @@ const SelectDropdown = ({
             width: '100%',
             zIndex: 99999,
             boxSizing: 'border-box',
+            backgroundColor: 'var(--dropdown-bg, #16201d)',
             background: 'var(--dropdown-bg, #16201d)',
-            border: '1px solid var(--border-color, rgba(255, 255, 255, 0.15))',
+            border: '1px solid var(--border-color, rgba(255, 255, 255, 0.2))',
             borderRadius: '12px',
-            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 10px 15px -5px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 10px 15px -5px rgba(0, 0, 0, 0.4)',
             padding: '6px',
             maxHeight: '230px',
             overflowY: 'auto',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)'
+            opacity: 1
           }}
           className="animate-in fade-in slide-in-from-top-2 duration-150 scrollbar-thin"
         >

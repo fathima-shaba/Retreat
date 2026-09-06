@@ -1027,8 +1027,9 @@ select.input-field {
   font-family: inherit;
 }
 
-.custom-select-container.is-open {
-  z-index: 1050 !important;
+.custom-select-container.is-open,
+.select-dropdown-container.is-open {
+  z-index: 9999 !important;
 }
 
 .custom-select-trigger {
