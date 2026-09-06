@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { Plus, X, Edit2, Trash2, Calendar, Filter, DollarSign, PieChart, TrendingUp, Tag, FileText, CheckCircle2, ChevronRight, RefreshCw, FolderPlus, Settings, Download, AlertCircle, Wallet } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Expenses = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -50,10 +50,8 @@ const Expenses = () => {
 
   // Fetch Categories from DB
   const fetchCategories = () => {
-    fetch(`${API_BASE_URL}/expenses/categories`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
+    authFetch(`${API_BASE_URL}/expenses/categories`)
+    .then(res => res && res.ok ? res.json() : [])
     .then(data => {
       if (Array.isArray(data)) setCategories(data);
     })
@@ -70,10 +68,8 @@ const Expenses = () => {
       queryParams.append('endDate', endDate);
     }
 
-    fetch(`${API_BASE_URL}/expenses?${queryParams.toString()}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
+    authFetch(`${API_BASE_URL}/expenses?${queryParams.toString()}`)
+    .then(res => res && res.ok ? res.json() : [])
     .then(data => setExpenses(Array.isArray(data) ? data : []))
     .catch(err => console.error("Error fetching expenses:", err));
   };
@@ -87,12 +83,12 @@ const Expenses = () => {
       queryParams.append('endDate', endDate);
     }
 
-    fetch(`${API_BASE_URL}/expenses/stats?${queryParams.toString()}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
+    authFetch(`${API_BASE_URL}/expenses/stats?${queryParams.toString()}`)
+    .then(res => res && res.ok ? res.json() : null)
     .then(data => {
-      if (data && !data.error) setStats(data);
+      if (data && !data.error && typeof data === 'object' && data.today !== undefined) {
+        setStats(data);
+      }
     })
     .catch(err => console.error("Error fetching expense stats:", err));
   };
@@ -139,9 +135,8 @@ const Expenses = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this expense record?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/expenses/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const res = await authFetch(`${API_BASE_URL}/expenses/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) {
         setSuccessMessage('Expense record deleted successfully!');
@@ -177,11 +172,10 @@ const Expenses = () => {
     const method = editingId ? 'PUT' : 'POST';
     
     try {
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           category: expenseData.category,
@@ -215,11 +209,10 @@ const Expenses = () => {
     if (!newCategoryName.trim()) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/expenses/categories`, {
+      const res = await authFetch(`${API_BASE_URL}/expenses/categories`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ name: newCategoryName.trim() })
       });
@@ -237,11 +230,10 @@ const Expenses = () => {
     if (!editingCatName.trim()) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/expenses/categories/${id}`, {
+      const res = await authFetch(`${API_BASE_URL}/expenses/categories/${id}`, {
         method: 'PUT',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ name: editingCatName.trim() })
       });
@@ -261,9 +253,8 @@ const Expenses = () => {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Delete this expense category?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/expenses/categories/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const res = await authFetch(`${API_BASE_URL}/expenses/categories/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) {
         fetchCategories();
@@ -363,10 +354,10 @@ const Expenses = () => {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Today's Expense</span>
               </div>
               <div className="stat-value" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '1.5rem' }}>
-                ₹{stats.today.toLocaleString()}
+                ₹{Number(stats?.today || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {stats.todayCount} entry{stats.todayCount !== 1 ? 'ies' : ''}
+                {stats?.todayCount || 0} entry{stats?.todayCount !== 1 ? 'ies' : ''}
               </div>
             </div>
 
@@ -375,10 +366,10 @@ const Expenses = () => {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Yesterday's Expense</span>
               </div>
               <div className="stat-value" style={{ marginTop: '0.25rem', fontSize: '1.5rem' }}>
-                ₹{stats.yesterday.toLocaleString()}
+                ₹{Number(stats?.yesterday || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {stats.yesterdayCount} entry{stats.yesterdayCount !== 1 ? 'ies' : ''}
+                {stats?.yesterdayCount || 0} entry{stats?.yesterdayCount !== 1 ? 'ies' : ''}
               </div>
             </div>
 
@@ -387,10 +378,10 @@ const Expenses = () => {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>This Week</span>
               </div>
               <div className="stat-value" style={{ marginTop: '0.25rem', fontSize: '1.5rem' }}>
-                ₹{stats.thisWeek.toLocaleString()}
+                ₹{Number(stats?.thisWeek || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {stats.thisWeekCount} entry{stats.thisWeekCount !== 1 ? 'ies' : ''}
+                {stats?.thisWeekCount || 0} entry{stats?.thisWeekCount !== 1 ? 'ies' : ''}
               </div>
             </div>
 
@@ -399,10 +390,10 @@ const Expenses = () => {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>This Month</span>
               </div>
               <div className="stat-value" style={{ color: '#f59e0b', marginTop: '0.25rem', fontSize: '1.5rem' }}>
-                ₹{stats.thisMonth.toLocaleString()}
+                ₹{Number(stats?.thisMonth || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {stats.thisMonthCount} entry{stats.thisMonthCount !== 1 ? 'ies' : ''}
+                {stats?.thisMonthCount || 0} entry{stats?.thisMonthCount !== 1 ? 'ies' : ''}
               </div>
             </div>
 
@@ -411,10 +402,10 @@ const Expenses = () => {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>This Year</span>
               </div>
               <div className="stat-value" style={{ marginTop: '0.25rem', fontSize: '1.5rem' }}>
-                ₹{stats.thisYear.toLocaleString()}
+                ₹{Number(stats?.thisYear || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {stats.thisYearCount} entry{stats.thisYearCount !== 1 ? 'ies' : ''}
+                {stats?.thisYearCount || 0} entry{stats?.thisYearCount !== 1 ? 'ies' : ''}
               </div>
             </div>
           </div>
@@ -471,18 +462,18 @@ const Expenses = () => {
                 <Tag size={18} color="var(--accent-primary)" /> Category Breakdown
               </h3>
 
-              {stats.categoryBreakdown && stats.categoryBreakdown.length > 0 ? (
+              {stats?.categoryBreakdown && stats.categoryBreakdown.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {stats.categoryBreakdown.map((cat, idx) => (
                     <div key={idx}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
                         <span style={{ fontWeight: '500' }}>{cat.category}</span>
                         <span>
-                          <strong>₹{cat.total_amount.toLocaleString()}</strong> ({cat.percentage}%)
+                          <strong>₹{Number(cat?.total_amount || 0).toLocaleString('en-IN')}</strong> ({cat?.percentage || 0}%)
                         </span>
                       </div>
                       <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${cat.percentage}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '3px' }}></div>
+                        <div style={{ width: `${cat?.percentage || 0}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '3px' }}></div>
                       </div>
                     </div>
                   ))}
@@ -498,10 +489,10 @@ const Expenses = () => {
             <div className="glass-panel section-card table-responsive-container">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>
-                  Expense Records ({expenses.length})
+                  Expense Records ({(expenses || []).length})
                 </h3>
                 <span style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '600' }}>
-                  Total: ₹{expenses.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}
+                  Total: ₹{(expenses || []).reduce((sum, e) => sum + Number(e?.amount || 0), 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -517,10 +508,10 @@ const Expenses = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {expenses.length > 0 ? expenses.map((expense) => (
+                  {(expenses || []).length > 0 ? expenses.map((expense) => (
                     <tr key={expense.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '0.75rem 1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        {new Date(expense.expense_date).toLocaleDateString()}
+                        {expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : ''}
                       </td>
                       <td style={{ padding: '0.75rem 1rem' }}>
                         <span style={{
@@ -545,7 +536,7 @@ const Expenses = () => {
                         {expense.payment_method || 'Cash'}
                       </td>
                       <td style={{ padding: '0.75rem 1rem', fontWeight: '600', color: '#ef4444' }}>
-                        ₹{Number(expense.amount).toLocaleString()}
+                        ₹{Number(expense?.amount || 0).toLocaleString('en-IN')}
                       </td>
                       {isAdmin && (
                         <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>

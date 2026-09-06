@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Users, BedDouble, Wallet } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const DonutChart = ({ occupied, available, maintenance }) => {
   const total = occupied + available + maintenance;
@@ -60,13 +60,12 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
+        const response = await authFetch(`${API_BASE_URL}/dashboard/stats`);
+        if (response && response.ok) {
           const data = await response.json();
-          setStats(data);
+          if (data && typeof data === 'object') {
+            setStats(data);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch data", err);

@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import SearchInput from '../components/SearchInput';
 import SelectDropdown from '../components/SelectDropdown';
 import { Plus, X, Edit2, Trash2, Filter, Wallet, CheckCircle2, Clock, AlertCircle, Calendar } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Payments = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -36,11 +36,8 @@ const Payments = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/payments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to fetch payments.");
+      const res = await authFetch(`${API_BASE_URL}/payments`);
+      if (!res || !res.ok) throw new Error("Failed to fetch payments.");
       const data = await res.json();
       setPayments(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -54,11 +51,8 @@ const Payments = () => {
   // Fetch Members List for Modal Dropdown
   const fetchMembers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/members`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
+      const res = await authFetch(`${API_BASE_URL}/members`);
+      if (res && res.ok) {
         const data = await res.json();
         setMembers(Array.isArray(data) ? data : []);
       }
@@ -132,11 +126,10 @@ const Payments = () => {
     const method = editingId ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
@@ -158,9 +151,8 @@ const Payments = () => {
     if (!window.confirm("Are you sure you want to delete this payment record?")) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/payments/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await authFetch(`${API_BASE_URL}/payments/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) {
         fetchPayments();
@@ -234,7 +226,7 @@ const Payments = () => {
                 </div>
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: '#10b981' }}>
-                ₹{totalPaidRevenue.toLocaleString('en-IN')}
+                ₹{Number(totalPaidRevenue || 0).toLocaleString('en-IN')}
               </div>
             </div>
 
@@ -248,7 +240,7 @@ const Payments = () => {
                 </div>
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: '#f59e0b' }}>
-                ₹{totalPendingFees.toLocaleString('en-IN')}
+                ₹{Number(totalPendingFees || 0).toLocaleString('en-IN')}
               </div>
             </div>
 
@@ -339,7 +331,7 @@ const Payments = () => {
                           {payment.member_name || <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Unknown Resident</span>}
                         </td>
                         <td style={{ padding: '1rem', fontWeight: '600' }}>
-                          ₹{Number(payment.amount).toLocaleString('en-IN')}
+                          ₹{Number(payment?.amount || 0).toLocaleString('en-IN')}
                         </td>
                         <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                           <span style={{ background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>

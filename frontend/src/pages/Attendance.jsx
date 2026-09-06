@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import SearchInput from '../components/SearchInput';
 import { UserCheck, UserX, Clock, Calendar, Save, Filter, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Attendance = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -26,12 +26,9 @@ const Attendance = () => {
     setError('');
     setSuccessMsg('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/attendance?date=${dateStr}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await authFetch(`${API_BASE_URL}/attendance?date=${dateStr}`);
 
-      if (!res.ok) throw new Error("Failed to fetch attendance data.");
+      if (!res || !res.ok) throw new Error("Failed to fetch attendance data.");
       const data = await res.json();
       setRoster(Array.isArray(data.roster) ? data.roster : []);
     } catch (err) {
@@ -46,39 +43,30 @@ const Attendance = () => {
     fetchAttendance(selectedDate);
   }, [selectedDate]);
 
-  // Toggle individual resident status
-  const setResidentStatus = (residentId, newStatus) => {
-    setRoster(prev => prev.map(item => {
-      if (item.resident_id === residentId) {
-        return { ...item, status: newStatus };
-      }
-      return item;
-    }));
+  // Toggle status for single resident
+  const handleStatusChange = (residentId, newStatus) => {
+    setRoster(prev => prev.map(r => 
+      r.resident_id === residentId ? { ...r, status: newStatus } : r
+    ));
   };
 
-  // Bulk mark all residents
-  const handleMarkAll = (newStatus) => {
-    setRoster(prev => prev.map(item => ({ ...item, status: newStatus })));
+  // Bulk mark all
+  const handleMarkAll = (status) => {
+    setRoster(prev => prev.map(r => ({ ...r, status })));
   };
 
-  // Update remarks
-  const handleRemarkChange = (residentId, remarkText) => {
-    setRoster(prev => prev.map(item => {
-      if (item.resident_id === residentId) {
-        return { ...item, remarks: remarkText };
-      }
-      return item;
-    }));
+  const handleRemarksChange = (residentId, text) => {
+    setRoster(prev => prev.map(r => 
+      r.resident_id === residentId ? { ...r, remarks: text } : r
+    ));
   };
 
-  // Save Attendance to Backend (POST /api/attendance)
+  // Save Attendance to Backend
   const handleSaveAttendance = async () => {
     setIsSaving(true);
     setError('');
     setSuccessMsg('');
-
     try {
-      const token = localStorage.getItem('token');
       const payload = {
         date: selectedDate,
         records: roster.map(r => ({
@@ -89,11 +77,10 @@ const Attendance = () => {
         }))
       };
 
-      const res = await fetch(`${API_BASE_URL}/attendance`, {
+      const res = await authFetch(`${API_BASE_URL}/attendance`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });

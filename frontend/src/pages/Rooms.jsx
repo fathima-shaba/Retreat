@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, Trash2, Home, BedDouble, AlertCircle, IndianRupee, Layers, Tag, LayoutDashboard, List } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Rooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -27,11 +27,9 @@ const Rooms = () => {
   const [validationError, setValidationError] = useState('');
 
   const fetchRooms = () => {
-    fetch(`${API_BASE_URL}/rooms`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
-    .then(data => setRooms(data))
+    authFetch(`${API_BASE_URL}/rooms`)
+    .then(res => res && res.ok ? res.json() : [])
+    .then(data => setRooms(Array.isArray(data) ? data : []))
     .catch(err => console.error(err));
   };
 
@@ -76,9 +74,8 @@ const Rooms = () => {
     if (!window.confirm('Are you sure you want to delete this room?')) return;
     
     try {
-      const res = await fetch(`${API_BASE_URL}/rooms/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const res = await authFetch(`${API_BASE_URL}/rooms/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) fetchRooms();
     } catch (err) {
@@ -191,11 +188,10 @@ const Rooms = () => {
     const method = editingId ? 'PUT' : 'POST';
     
     try {
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           room_number: roomData.room_number.trim(),
@@ -358,7 +354,7 @@ const Rooms = () => {
                           alignItems: 'center',
                           gap: '3px'
                         }}>
-                          <Tag size={10} /> {sr.sharing_type} Share: ₹{sr.monthly_rent.toLocaleString()}
+                          <Tag size={10} /> {sr.sharing_type} Share: ₹{Number(sr?.monthly_rent || 0).toLocaleString()}
                         </span>
                       ))
                     ) : (

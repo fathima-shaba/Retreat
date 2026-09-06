@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import CustomSelect from '../components/CustomSelect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, X, Edit2, Trash2, Calendar, UserPlus, Tag, AlertCircle, CheckCircle2, Shield, Phone, User } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Members = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
@@ -44,11 +44,8 @@ const Members = () => {
 
   const fetchRooms = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const resRooms = await fetch(`${API_BASE_URL}/rooms`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (resRooms.ok) {
+      const resRooms = await authFetch(`${API_BASE_URL}/rooms`);
+      if (resRooms && resRooms.ok) {
         const dataRooms = await resRooms.json();
         const roomsArr = Array.isArray(dataRooms) ? dataRooms : [];
         setRooms(roomsArr);
@@ -62,12 +59,8 @@ const Members = () => {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
-      const resStudents = await fetch(`${API_BASE_URL}/members`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (resStudents.ok) {
+      const resStudents = await authFetch(`${API_BASE_URL}/members`);
+      if (resStudents && resStudents.ok) {
         const dataStudents = await resStudents.json();
         setMembers(Array.isArray(dataStudents) ? dataStudents : []);
       }
@@ -125,9 +118,8 @@ const Members = () => {
   const handleDelete = async (id) => {
     if(!window.confirm("Are you sure you want to delete this resident record?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/members/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const res = await authFetch(`${API_BASE_URL}/members/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) {
         setSuccessMessage('Resident deleted successfully');
@@ -145,8 +137,8 @@ const Members = () => {
     if (room.sharing_rates && room.sharing_rates.length > 0) {
       return room.sharing_rates.map(rate => ({
         value: String(rate.sharing_type),
-        label: `${rate.sharing_type} Share (₹${Number(rate.monthly_rent).toLocaleString()}/mo)`,
-        monthly_rent: Number(rate.monthly_rent)
+        label: `${rate.sharing_type} Share (₹${Number(rate?.monthly_rent || 0).toLocaleString()}/mo)`,
+        monthly_rent: Number(rate?.monthly_rent || 0)
       }));
     }
     // Dynamic fallback options based on capacity (1..capacity)
@@ -162,7 +154,7 @@ const Members = () => {
       else if (i === 6) rent = 3500;
       rates.push({
         value: String(i),
-        label: `${i} Share (₹${rent.toLocaleString()}/mo)`,
+        label: `${i} Share (₹${Number(rent || 0).toLocaleString()}/mo)`,
         monthly_rent: rent
       });
     }
@@ -279,11 +271,10 @@ const Members = () => {
         institution_details: studentData.institution_details.trim()
       };
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
@@ -428,10 +419,10 @@ const Members = () => {
                         )}
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: '600' }}>Rent: ₹{Number(member.rent_fee || 0).toLocaleString()}/mo</div>
-                        {member.deposit_fee > 0 && (
+                        <div style={{ fontWeight: '600' }}>Rent: ₹{Number(member?.rent_fee || 0).toLocaleString()}/mo</div>
+                        {member?.deposit_fee > 0 && (
                           <div style={{ fontSize: '0.75rem', color: '#10b981' }}>
-                            Deposit: ₹{Number(member.deposit_fee).toLocaleString()}
+                            Deposit: ₹{Number(member?.deposit_fee || 0).toLocaleString()}
                           </div>
                         )}
                       </td>

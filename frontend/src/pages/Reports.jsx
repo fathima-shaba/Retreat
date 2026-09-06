@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Download, FileText, PieChart, TrendingUp, DollarSign, RefreshCw, Users, CreditCard, Receipt, BedDouble } from 'lucide-react';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -28,16 +28,13 @@ const Reports = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-
       const [occRes, finRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/reports/occupancy`, { headers }),
-        fetch(`${API_BASE_URL}/reports/financials`, { headers })
+        authFetch(`${API_BASE_URL}/reports/occupancy`),
+        authFetch(`${API_BASE_URL}/reports/financials`)
       ]);
 
-      if (occRes.ok) setOccupancyData(await occRes.json());
-      if (finRes.ok) setFinancialData(await finRes.json());
+      if (occRes && occRes.ok) setOccupancyData(await occRes.json());
+      if (finRes && finRes.ok) setFinancialData(await finRes.json());
     } catch (err) {
       console.error("Failed to fetch reports", err);
     } finally {
@@ -65,14 +62,12 @@ const Reports = () => {
   const handleDownloadCSV = async (type) => {
     setDownloading(`${type}_csv`);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
       let csvContent = "";
       const filename = `report_${type}_${new Date().toISOString().split('T')[0]}.csv`;
 
       if (type === 'members') {
-        const res = await fetch(`${API_BASE_URL}/members`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/members`);
+        const data = res && res.ok ? await res.json() : [];
         const membersList = Array.isArray(data) ? data : [];
 
         csvContent = "ID,Name,Email,Phone,Aadhar/Govt ID,Guardian Name,Guardian Phone,Sharing Type,Monthly Rent (INR),Joined Date,Resident Type\n";
@@ -80,8 +75,8 @@ const Reports = () => {
           csvContent += `${escapeCSVCell(m.id)},${escapeCSVCell(m.name)},${escapeCSVCell(m.email)},${escapeCSVCell(m.phone || 'N/A')},${escapeCSVCell(m.aadhar_number || 'N/A')},${escapeCSVCell(m.guardian_name || 'N/A')},${escapeCSVCell(m.guardian_phone || 'N/A')},${escapeCSVCell(m.sharing_type ? `${m.sharing_type} Share` : 'N/A')},${escapeCSVCell(m.rent_fee || 0)},${escapeCSVCell(m.joined_date ? m.joined_date.split('T')[0] : 'N/A')},${escapeCSVCell(m.member_type || 'Student')}\n`;
         });
       } else if (type === 'payments') {
-        const res = await fetch(`${API_BASE_URL}/payments`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/payments`);
+        const data = res && res.ok ? await res.json() : [];
         const paymentsList = Array.isArray(data) ? data : [];
 
         csvContent = "Receipt No,Resident Name,Amount (INR),Status,Payment Mode,Payment Date,Remarks\n";
@@ -90,8 +85,8 @@ const Reports = () => {
           csvContent += `${escapeCSVCell(p.receipt_no || 'N/A')},${escapeCSVCell(name)},${escapeCSVCell(p.amount)},${escapeCSVCell(p.status)},${escapeCSVCell(p.payment_mode || 'Cash')},${escapeCSVCell(p.payment_date ? p.payment_date.split('T')[0] : 'N/A')},${escapeCSVCell(p.remarks || '')}\n`;
         });
       } else if (type === 'expenses') {
-        const res = await fetch(`${API_BASE_URL}/expenses`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/expenses`);
+        const data = res && res.ok ? await res.json() : [];
         const expensesList = Array.isArray(data) ? data : [];
 
         csvContent = "ID,Category,Amount (INR),Description,Payment Method,Expense Date\n";
@@ -99,8 +94,8 @@ const Reports = () => {
           csvContent += `${escapeCSVCell(e.id)},${escapeCSVCell(e.category)},${escapeCSVCell(e.amount)},${escapeCSVCell(e.description || 'N/A')},${escapeCSVCell(e.payment_method || 'Cash')},${escapeCSVCell(e.expense_date ? e.expense_date.split('T')[0] : 'N/A')}\n`;
         });
       } else if (type === 'rooms') {
-        const res = await fetch(`${API_BASE_URL}/rooms`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/rooms`);
+        const data = res && res.ok ? await res.json() : [];
         const roomsList = Array.isArray(data) ? data : [];
 
         csvContent = "ID,Room Number,Floor,Total Capacity,Status\n";
@@ -111,15 +106,14 @@ const Reports = () => {
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
-      console.error("CSV download error:", err);
-      alert("Error generating CSV report.");
+      console.error("CSV Download Failed", err);
     } finally {
       setDownloading('');
     }
@@ -127,19 +121,15 @@ const Reports = () => {
 
   // Client-side PDF Download Handler using jsPDF
   const handleDownloadPDF = async (type) => {
-    setDownloading(`${type}_pdf`);
+    setDownloading(type);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-
       const doc = new jsPDF();
       const timestamp = new Date().toLocaleString();
 
-      // Top Title Banner
-      doc.setFillColor(16, 185, 129); // Emerald theme
-      doc.rect(0, 0, 210, 15, 'F');
-      
-      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(16, 185, 129);
+      doc.rect(0, 0, 210, 4, 'F');
+
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.text("HOSTEL MANAGEMENT SYSTEM — OFFICIAL REPORT", 14, 10);
 
@@ -148,8 +138,8 @@ const Reports = () => {
       doc.setFont("helvetica", "bold");
 
       if (type === 'members') {
-        const res = await fetch(`${API_BASE_URL}/members`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/members`);
+        const data = res && res.ok ? await res.json() : [];
         const membersList = Array.isArray(data) ? data : [];
 
         doc.text("Resident Directory & Profiles Report", 14, 26);
@@ -180,8 +170,8 @@ const Reports = () => {
         });
 
       } else if (type === 'payments') {
-        const res = await fetch(`${API_BASE_URL}/payments`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/payments`);
+        const data = res && res.ok ? await res.json() : [];
         const paymentsList = Array.isArray(data) ? data : [];
 
         doc.text("Fee & Payment Ledger Report", 14, 26);
@@ -210,8 +200,8 @@ const Reports = () => {
         });
 
       } else if (type === 'expenses') {
-        const res = await fetch(`${API_BASE_URL}/expenses`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/expenses`);
+        const data = res && res.ok ? await res.json() : [];
         const expensesList = Array.isArray(data) ? data : [];
 
         doc.text("Operational Expenses Log Report", 14, 26);
@@ -240,8 +230,8 @@ const Reports = () => {
         });
 
       } else if (type === 'rooms') {
-        const res = await fetch(`${API_BASE_URL}/rooms`, { headers });
-        const data = res.ok ? await res.json() : [];
+        const res = await authFetch(`${API_BASE_URL}/rooms`);
+        const data = res && res.ok ? await res.json() : [];
         const roomsList = Array.isArray(data) ? data : [];
 
         doc.text("Room Inventory & Capacity Report", 14, 26);
@@ -324,7 +314,7 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: '#10b981' }}>
-                ₹{financialData.total_revenue.toLocaleString('en-IN')}
+                ₹{Number(financialData?.total_revenue || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                 Paid resident fees
@@ -341,7 +331,7 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: '#ef4444' }}>
-                ₹{financialData.total_expenses.toLocaleString('en-IN')}
+                ₹{Number(financialData?.total_expenses || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                 Mess, maintenance & bills
@@ -357,8 +347,8 @@ const Reports = () => {
                   <span style={{ fontSize: '0.875rem' }}>Net Operating Profit</span>
                 </div>
               </div>
-              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: financialData.net_income >= 0 ? '#10b981' : '#ef4444' }}>
-                ₹{financialData.net_income.toLocaleString('en-IN')}
+              <div className="stat-value" style={{ marginTop: '0.5rem', fontSize: '1.75rem', color: (financialData?.net_income || 0) >= 0 ? '#10b981' : '#ef4444' }}>
+                ₹{Number(financialData?.net_income || 0).toLocaleString('en-IN')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                 Revenue minus expenses
@@ -522,7 +512,7 @@ const Reports = () => {
                 <div style={{ padding: '1rem', background: 'rgba(245,158,11,0.05)', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.2)', fontSize: '0.85rem' }}>
                   <div style={{ fontWeight: '600', color: '#f59e0b', marginBottom: '0.25rem' }}>Pending Dues Alert</div>
                   <div style={{ color: 'var(--text-secondary)' }}>
-                    ₹{financialData.total_pending.toLocaleString('en-IN')} in unpaid resident dues requires collection follow-up.
+                    ₹{Number(financialData?.total_pending || 0).toLocaleString('en-IN')} in unpaid resident dues requires collection follow-up.
                   </div>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Sun, Moon, Check, Key } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL, authFetch } from '../apiConfig';
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -14,11 +14,10 @@ const Settings = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      const res = await authFetch(`${API_BASE_URL}/auth/change-password`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ oldPassword, newPassword })
       });
